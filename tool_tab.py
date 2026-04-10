@@ -16,21 +16,28 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QAbstractItemView,
     QMessageBox,
-    QGroupBox
+    QGroupBox,
+    QHeaderView,
+    QTableView
 )
-from tables import MyTableWidget
+from table_model import tableModel
 
 
 import csv
 
 class myTools(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         #create main layout
         self.mainLayout = QVBoxLayout(self)
 
-        self.studentsData = MyTableWidget("sampleData.csv")
+        self.model = model
+
+        self.studentsData = QTableView()
+        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+
+        self.studentsData.setModel(self.model)
 
         #layout for top thing
         self.create_top_layout()
@@ -40,6 +47,9 @@ class myTools(QWidget):
 
         #set the created layout to the widget
         self.setLayout(self.mainLayout)
+
+        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
         #set the widnow size
         self.setGeometry(100, 100, 1000, 700)
         
@@ -57,13 +67,13 @@ class myTools(QWidget):
         delBtn.setText("Remove")
 
         #place to enter value
-        nameEntry = QLineEdit()
-        quanEntry = QLineEdit()
-        condEntry = QLineEdit()
-        tagEntry = QLineEdit()
-        locatEntry = QLineEdit()
+        self.nameEntry = QLineEdit()
+        self.quanEntry = QLineEdit()
+        self.condEntry = QLineEdit()
+        self.tagEntry = QLineEdit()
+        self.locatEntry = QLineEdit()
 
-        self.entries = [nameEntry, quanEntry, condEntry, tagEntry, locatEntry]
+        self.entries = [self.nameEntry, self.quanEntry, self.condEntry, self.tagEntry, self.locatEntry]
         
         self.reset_entry_text()
 
@@ -98,13 +108,21 @@ class myTools(QWidget):
         newToolData.append(self.locatEntry.text())
         #add all entries to a list
 
-        self.studentsData.addRow(newToolData)
+        self.model.add_row(newToolData)
         #add to table
-
-        self.reset_entry_text()
     
     def remove_tool(self):
-        self.studentsData.delRow()
+    #remove a single selected row from the db
+        index = self.studentsData.currentIndex()
+        #find the row of the item
+
+        print(index.row())
+
+        if index.isValid():
+            self.model.del_row(index.row())
+            #remove it
+
+
 
     def reset_entry_text(self):
     #helper function to reset the text entries       
@@ -112,13 +130,15 @@ class myTools(QWidget):
         #the text to reset them to
 
         for entryItem, text in zip(self.entries, textBoxes):
-            entryItem.setText(text)
+            entryItem.setPlaceholderText(text)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    dataModel = tableModel("sampleData.csv")
+
     # create the main window
-    window = myTools()
+    window = myTools(dataModel)
 
     # start the event loop
     sys.exit(app.exec())
