@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
 import csv
-from tables import MyTableWidget as dataTable
+from table_model import tableModel as dataTable
 
 from student_tab import myStudents
 from dashboard_tab import myDashboard
@@ -26,7 +26,7 @@ class App(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.title = 'Database'
+        self.title = 'SEIC 120 Database'
         self.left = 0
         self.top = 0
         self.width = 600

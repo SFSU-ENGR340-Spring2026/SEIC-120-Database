@@ -33,8 +33,10 @@ class myTools(QWidget):
         self.mainLayout = QVBoxLayout(self)
 
         self.model = model
+        #create the model for the data
 
         self.studentsData = QTableView()
+        #create the view to look at the model
         self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
 
         self.studentsData.setModel(self.model)
