@@ -1,13 +1,14 @@
 import sqlite3
 import csv
+from student_db import certs
 
 class tool:
-    def __init__(self, level, quantity, location, name, category):
+    def __init__(self, level, quantity, location, name, certification):
         self.level = level
         self.quantity = quantity
         self.location = location
         self.name = name
-        self.category = category
+        self.cert = certification
 
     def getLevel(self):
         print(self.level)
@@ -30,7 +31,7 @@ class lowLevel(tool):
     pass
 
 
-conn = sqlite3.connect("tools.sqlite3")
+conn = sqlite3.connect("database.sqlite3")
 cur = conn.cursor()
 
 cur.execute("""
@@ -40,16 +41,16 @@ CREATE TABLE IF NOT EXISTS tools (
     quantity INTEGER,
     location TEXT,
     name TEXT,
-    category TEXT
+    cert INTEGER
 )
 """)
 
-tool1 = tool("high", 5, "Shelf A", "Hammer", "Hand Tool")
+tool1 = tool("high", 5, "Shelf A", "Hammer", 1)
 
 cur.execute("""
-INSERT INTO tools (level, quantity, location, name, category)
+INSERT INTO tools (level, quantity, location, name, cert)
 VALUES (?, ?, ?, ?, ?)
-""", (tool1.level, tool1.quantity, tool1.location, tool1.name, tool1.category))
+""", (tool1.level, tool1.quantity, tool1.location, tool1.name, tool1.cert))
 
 conn.commit()
 
