@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS students (
 )
 """)
 
-student1 = student(924338360, "Ben Smith", 3)
+student1 = student(555555555, "Ben Smith", 3)
 
 cur.execute("""
 INSERT INTO students (id, name, cert)
