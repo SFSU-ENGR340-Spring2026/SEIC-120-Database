@@ -17,7 +17,8 @@ from PyQt6.QtWidgets import (
     QAbstractItemView,
     QMessageBox,
     QGroupBox,
-    QTableView
+    QTableView,
+    QHeaderView
 )
 from table_model import tableModel
 
@@ -25,7 +26,7 @@ from table_model import tableModel
 import csv
 
 class myStudents(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         #create main layout
@@ -33,26 +34,34 @@ class myStudents(QWidget):
 
         #layout for top thing
         changeStudentsLayout = QHBoxLayout()
+
         #buttons
         addBtn = QPushButton()
         addBtn.setText("Add")
         delBtn = QPushButton()
         delBtn.setText("Remove")
+
         #place to enter value
         entryLine = QLineEdit()
         entryLine.setPlaceholderText("put thing")
+
         #add widgets to layout
         changeStudentsLayout.addWidget(entryLine)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
+
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
 
-        #layout for bottom table
-        model = tableModel("sampleStudents.csv")
+        studModel = model
+        #create the model for the data
 
         studentsData = QTableView()
-        studentsData.setModel(model)
+        #create a view to look at the model
+        studentsData.setModel(studModel)
+        studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        
+        #layout for bottom table
         studentsDataLayout = QVBoxLayout()
 
         studentsDataLayout.addWidget(studentsData)
@@ -70,8 +79,10 @@ class myStudents(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    model = tableModel("sampleStudents.csv")
+
     # create the main window
-    window = myStudents()
+    window = myStudents(model)
 
     # start the event loop
     sys.exit(app.exec())
