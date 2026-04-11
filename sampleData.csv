@@ -1,4 +1,14 @@
-Tool,Quantity,Condition,Tag,Location
+Tool,Quantity,Condition,Tag,Table
 Screwdriver,20,bad,low,none
 Drill,3,bad,high,none
 MetalCutter,2,bad,low,none
+Hammer,15,good,medium,a1
+Wrench,10,fair,low,b2
+Pliers,8,good,medium,c3
+Saw,5,bad,high,d4
+TapeMeasure,12,good,low,e5
+Chisel,7,fair,medium,a3
+Level,4,good,high,b5
+SocketSet,6,fair,medium,c1
+UtilityKnife,9,good,low,d2
+AllenKeySet,11,fair,medium,e4
