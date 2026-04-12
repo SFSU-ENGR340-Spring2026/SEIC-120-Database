@@ -37,7 +37,12 @@ class myTools(QWidget):
 
         self.studentsData = QTableView()
         #create the view to look at the model
+
+        #format output
         self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        #select only one at a time
+        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        #contents will stretch to fit window
 
         self.studentsData.setModel(self.model)
 
@@ -49,8 +54,6 @@ class myTools(QWidget):
 
         #set the created layout to the widget
         self.setLayout(self.mainLayout)
-
-        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         #set the widnow size
         self.setGeometry(100, 100, 1000, 700)
