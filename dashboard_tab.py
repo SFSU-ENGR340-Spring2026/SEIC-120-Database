@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 )
 
 from table_model import tableModel
+from table_model import tableModel
 
 
 import csv

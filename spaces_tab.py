@@ -27,6 +27,8 @@ class myTables(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        model = model
+
         #create the views
         self.table1 = QTableView()
         self.table2 = QTableView()
