@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox
 )
-from table_tests import MyTableWidget
+from table_model import tableModel
 
 
 import csv

@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
     QGroupBox
 )
 
-from tables import MyTableWidget
+from table_model import tableModel
 
 
 import csv
@@ -53,7 +53,8 @@ class myDashboard(QWidget):
         header.setReadOnly(True)
         layout.addWidget(header)
 
-        data = MyTableWidget(tableName)
+            #used to be myTableWidget
+        data = tableModel(tableName)
         layout.addWidget(data)
 
         self.mainLayout.addLayout(layout)

@@ -18,38 +18,52 @@ from PyQt6.QtWidgets import (
     QAbstractItemView,
     QMessageBox,
     QGroupBox,
-    QComboBox
+    QComboBox,
+    QHeaderView,
+    QTableView
 )
-from tables import MyTableWidget
+from table_model import tableModel
 
 
 import csv
 
 class myReports(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model,  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         #create main layout
         self.mainLayout = QVBoxLayout(self)
+        
+        self.model = model                     #create a model
+        self.studentsData = QTableView()      # have model look at the data
+        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.studentsData.setModel(self.model)
 
 
         #layout for top thing
         changeStudentsLayout = QHBoxLayout()
         
         #buttons
-        addBtn = QPushButton()                      # Create button
-        addBtn.setText("Pull")                       # Add text to button
-        delBtn = QPushButton()
-        delBtn.setText("Apply Filter")                    # Drop down list
+        pullBtn = QPushButton()                      # Create button
+        pullBtn.setText("Pull")                       # Add text to button | Acts as a "Enter" button
 
-        #Filter Drop down list
-        filterDropDown = QComboBox()
-        filterDropDown.addItem('Tools')
-        filterDropDown.addItem('Machinery')
-        filterDropDown.addItem('Tables')
-        filterDropDown.addItem('Time')
+        filterBtn = QPushButton()                          
+        filterBtn.setText("Filters")                    # Button to open filter menu
 
-        self.mainLayout.addWidget(filterDropDown)
+        # open pop up
+        filterBtn.clicked.connect(self.showPopUp)       # prompts pop up menu when pressed
+
+        
+        # #Filter Drop down list
+        # filterDropDown = QComboBox()
+        # filterDropDown.addItem('Tools')
+        # filterDropDown.addItem('Machinery')
+        # filterDropDown.addItem('Tables')
+        # filterDropDown.addItem('Time')
+
+        #self.mainLayout.addWidget(filterDropDown)
+
+        
 
 
         #place to enter value
@@ -57,17 +71,17 @@ class myReports(QWidget):
 
         #add widgets to layout
         changeStudentsLayout.addWidget(entryLine)
-        changeStudentsLayout.addWidget(addBtn)
-        changeStudentsLayout.addWidget(delBtn)
+        changeStudentsLayout.addWidget(pullBtn)
+        changeStudentsLayout.addWidget(filterBtn)
 
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
 
         #layout for bottom table
-        studentsData = MyTableWidget("sampleReports.csv")
+        studentsData = tableModel("sampleReports.csv")              
         studentsDataLayout = QVBoxLayout()
 
-        studentsDataLayout.addWidget(studentsData)
+        studentsDataLayout.addWidget(self.studentsData)
 
         self.mainLayout.addLayout(studentsDataLayout)
 
@@ -93,11 +107,30 @@ class myReports(QWidget):
 
         self.mainLayout.addLayout(layout)
 
+
+    def showPopUp(self):
+         # Cosmetics
+         msg = QMessageBox()
+         msg.setWindowTitle("Apply Filters")
+         msg.setText("Select Filters: ")
+         msg.setStandardButtons(QMessageBox.StandardButton.Save|QMessageBox.StandardButton.Cancel)      # Create Save and Cancel button
+         msg.setDefaultButton(QMessageBox.StandardButton.Save)                                          # Have Save Button be automatically highlighted
+         #msg.setStyleSheet("QLable{min-width: 3000px;}")
+         msg.resize(400,200)
+
+
+
+
+         disp = msg.exec()                      # opens the window
+         
+        
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # create the main window
-    window = myReports()
+    dataModel = tableModel("sampleReports.csv")
+    window = myReports(dataModel)
 
     # start the event loop
     sys.exit(app.exec())

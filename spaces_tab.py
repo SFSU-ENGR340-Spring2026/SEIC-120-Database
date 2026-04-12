@@ -16,20 +16,24 @@ from PyQt6.QtWidgets import (
     QMessageBox
 )
 
-from tables import MyTableWidget 
+from table_model import tableModel 
 
 import csv
 
 class myTables(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model,  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        model = model
+
         #create the table
-        self.table = MyTableWidget("sampleTables.csv")
-        self.table2 = MyTableWidget("sampleTables.csv")
-        self.table3 = MyTableWidget("sampleTables.csv")
-        self.table4 = MyTableWidget("sampleTables.csv")
-        self.table5 = MyTableWidget("sampleTables.csv")
+        self.table = tableModel("sampleTables.csv")
+        self.table2 = tableModel("sampleTables.csv")
+        self.table3 = tableModel("sampleTables.csv")
+        self.table4 = tableModel("sampleTables.csv")
+        self.table5 = tableModel("sampleTables.csv")
+
+
         
         # print(self.items)
 
