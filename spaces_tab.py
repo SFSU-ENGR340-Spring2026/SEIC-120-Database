@@ -13,23 +13,48 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QMainWindow,
     QAbstractItemView,
-    QMessageBox
+    QMessageBox,
+    QTableView
 )
 
-from tables import MyTableWidget 
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
+
+from table_model import tableModel 
 
 import csv
 
 class myTables(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #create the table
-        self.table = MyTableWidget("sampleTables.csv")
-        self.table2 = MyTableWidget("sampleTables.csv")
-        self.table3 = MyTableWidget("sampleTables.csv")
-        self.table4 = MyTableWidget("sampleTables.csv")
-        self.table5 = MyTableWidget("sampleTables.csv")
+        #create the views
+        self.table1 = QTableView()
+        self.table2 = QTableView()
+        self.table3 = QTableView()
+        self.table4 = QTableView()
+        self.table5 = QTableView()
+
+        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5]
+        #list of views
+        self.filters = ["a*", "b*", "c*", "d*", "e*"]
+        #list of what filters each table uses
+
+        for space, filter in zip(self.spaces, self.filters):
+            
+            proxy_model = QSortFilterProxyModel()
+            #create the model for filtering
+            proxy_model.setSourceModel(model)
+            
+            proxy_model.setFilterKeyColumn(3)
+            #column 3 (0 index), checks to filter by student location
+            
+            proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+            proxy_model.setFilterWildcard(filter)
+            #the filter is case insensitive, and wildcard, meaning anything starting 
+            # with the relevant filter is found
+            
+            #set the model
+            space.setModel(proxy_model) 
         
         # print(self.items)
 
@@ -58,7 +83,7 @@ class myTables(QWidget):
         buttonLayout.addWidget(button2)
 
         #add table to layout
-        tableLayout.addWidget(self.table)
+        tableLayout.addWidget(self.table1)
         tableLayout.addWidget(self.table2)
         tableLayout.addWidget(self.table3)
         tableLayout.addWidget(self.table4)
@@ -83,8 +108,10 @@ class myTables(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    model = tableModel("sampleStudents.csv")
+
     # create the main window
-    window = myTables()
+    window = myTables(model)
 
     # start the event loop
     sys.exit(app.exec())
