@@ -236,7 +236,7 @@ class filter_dialog(QDialog):
         layoutA.addLayout(spaces_layout)
 
       
-        spaces_layout.addLayout(layoutA)
+      
         spaces_group.setLayout(layoutA)
         layout.addWidget(spaces_group)       
 
@@ -268,12 +268,33 @@ class filter_dialog(QDialog):
             "A4": self.tableA4Box.isChecked(),
             "A5": self.tableA5Box.isChecked(),
 
+            "B1": self.tableB1Box.isChecked(),
+            "B2": self.tableB2Box.isChecked(),
+            "B3": self.tableB3Box.isChecked(),
+            "B4": self.tableB4Box.isChecked(),
+            "B5": self.tableB5Box.isChecked(),    
+
+            "C1": self.tableC1Box.isChecked(),
+            "C2": self.tableC2Box.isChecked(),
+            "C3": self.tableC3Box.isChecked(),
+            "C4": self.tableC4Box.isChecked(),
+            "C5": self.tableC5Box.isChecked(),        
+
+            "D1": self.tableD1Box.isChecked(),
+            "D2": self.tableD2Box.isChecked(),
+            "D3": self.tableD3Box.isChecked(),
+            "D4": self.tableD4Box.isChecked(),
+            "D5": self.tableD5Box.isChecked(),
+
+            "E1": self.tableE1Box.isChecked(),
+            "E2": self.tableE2Box.isChecked(),
+            "E3": self.tableE3Box.isChecked(),
+            "E4": self.tableE4Box.isChecked(),
+            "E5": self.tableE5Box.isChecked(),
 
         }
 
-
         
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 

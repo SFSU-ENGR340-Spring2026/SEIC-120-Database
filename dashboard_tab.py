@@ -49,11 +49,12 @@ class myDashboard(QWidget):
 
         self.setLayout(self.mainLayout)
 
-        self.setGeometry(100, 100, 1000, 700)
+        self.setGeometry(100, 100, 2500, 700)
         
         # show the window
         self.show()
-    
+
+ 
     def create_layout(self, textBox, model):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
@@ -61,7 +62,7 @@ class myDashboard(QWidget):
 
         header = QLineEdit()
         header.setText(textBox)
-        header.setReadOnly(True)
+        header.setReadOnly(False)
         layout.addWidget(header)
 
         table = QTableView()
@@ -69,6 +70,8 @@ class myDashboard(QWidget):
         #create table view, set model, add to layout
         layout.addWidget(table)
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+       
 
         self.mainLayout.addLayout(layout)
 

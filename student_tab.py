@@ -42,11 +42,18 @@ class myStudents(QWidget):
         delBtn.setText("Remove")
 
         #place to enter value
-        entryLine = QLineEdit()
-        entryLine.setPlaceholderText("put thing")
+        self.nameLine = QLineEdit()
+        self.nameLine.setPlaceholderText("Enter Student Name")
+
+        self.stuIDLine = QLineEdit()
+        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+
+  
+        
 
         #add widgets to layout
-        changeStudentsLayout.addWidget(entryLine)
+        changeStudentsLayout.addWidget(self.nameLine)
+        changeStudentsLayout.addWidget(self.stuIDLine)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
 
