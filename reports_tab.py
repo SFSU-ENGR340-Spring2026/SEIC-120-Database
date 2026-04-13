@@ -116,14 +116,129 @@ class filter_dialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-        #checkboxes
-        self.toolsBox = QCheckBox("Tools")
-        self.machineBox = QCheckBox("Machinery")
-        self.spacesBox = QCheckBox("Table")
 
-        layout.addWidget(self.toolsBox)
-        layout.addWidget(self.machineBox)               # add checkboxes to window
-        layout.addWidget(self.spacesBox)
+        # group boxes
+
+        # Tools Group
+        tool_group = QGroupBox("Tools")                 # Create Group box for tools   
+        tool_layout = QVBoxLayout()                     # Create VERTICAL layout for tool layout
+
+        self.screwdriverBox = QCheckBox("Screwdriver")       # create check box
+        self.hammerBox = QCheckBox("Hammer")
+        tool_layout.addWidget(self.screwdriverBox)           # add checkbox to grup
+        tool_layout.addWidget(self.hammerBox)
+
+        tool_group.setLayout(tool_layout)               # add layout to group
+        layout.addWidget(tool_group)                    # add tool group to main pop up layout
+
+        # spaces group
+        spaces_group = QGroupBox("Tables")
+        spaces_layout = QHBoxLayout()
+
+        #section A
+        layoutA = QVBoxLayout()
+        
+        self.tableA1Box = QCheckBox("A1")
+        self.tableA2Box = QCheckBox("A2")
+        self.tableA3Box = QCheckBox("A3")
+        self.tableA4Box = QCheckBox("A4")
+        self.tableA5Box = QCheckBox("A5")
+
+        spaces_layout.addWidget(self.tableA1Box)
+        spaces_layout.addWidget(self.tableA2Box)
+        spaces_layout.addWidget(self.tableA3Box)
+        spaces_layout.addWidget(self.tableA4Box)
+        spaces_layout.addWidget(self.tableA5Box)
+
+        # section B
+        layoutB = QHBoxLayout()
+
+        self.tableB1Box = QCheckBox("B1")
+        self.tableB2Box = QCheckBox("B2")
+        self.tableB3Box = QCheckBox("B3")
+        self.tableB4Box = QCheckBox("B4")
+        self.tableB5Box = QCheckBox("B5")
+
+        layoutB.addWidget(self.tableB1Box)
+        layoutB.addWidget(self.tableB2Box)
+        layoutB.addWidget(self.tableB3Box)
+        layoutB.addWidget(self.tableB4Box)
+        layoutB.addWidget(self.tableB5Box)
+
+        # section C
+        layoutC = QHBoxLayout()
+
+        self.tableC1Box = QCheckBox("C1")
+        self.tableC2Box = QCheckBox("C2")
+        self.tableC3Box = QCheckBox("C3")
+        self.tableC4Box = QCheckBox("C4")
+        self.tableC5Box = QCheckBox("C5")
+
+        layoutC.addWidget(self.tableC1Box)
+        layoutC.addWidget(self.tableC2Box)
+        layoutC.addWidget(self.tableC3Box)
+        layoutC.addWidget(self.tableC4Box)
+        layoutC.addWidget(self.tableC5Box)
+
+
+        # section D
+        layoutD = QHBoxLayout()
+
+        self.tableD1Box = QCheckBox("D1")
+        self.tableD2Box = QCheckBox("D2")
+        self.tableD3Box = QCheckBox("D3")
+        self.tableD4Box = QCheckBox("D4")
+        self.tableD5Box = QCheckBox("D5")
+
+        layoutD.addWidget(self.tableD1Box)
+        layoutD.addWidget(self.tableD2Box)
+        layoutD.addWidget(self.tableD3Box)
+        layoutD.addWidget(self.tableD4Box)
+        layoutD.addWidget(self.tableD5Box)
+
+        # section E
+        layoutE = QHBoxLayout()
+
+        self.tableE1Box = QCheckBox("E1")
+        self.tableE2Box = QCheckBox("E2")
+        self.tableE3Box = QCheckBox("E3")
+        self.tableE4Box = QCheckBox("E4")
+        self.tableE5Box = QCheckBox("E5")
+
+        layoutE.addWidget(self.tableE1Box)
+        layoutE.addWidget(self.tableE2Box)
+        layoutE.addWidget(self.tableE3Box)
+        layoutE.addWidget(self.tableE4Box)
+        layoutE.addWidget(self.tableE5Box)
+
+        # section F
+        layoutF = QHBoxLayout()
+
+        self.tableF1Box = QCheckBox("F1")
+        self.tableF2Box = QCheckBox("F2")
+        self.tableF3Box = QCheckBox("F3")
+        self.tableF4Box = QCheckBox("F4")
+        self.tableF5Box = QCheckBox("F5")
+
+        layoutF.addWidget(self.tableF1Box)
+        layoutF.addWidget(self.tableF2Box)
+        layoutF.addWidget(self.tableF3Box)
+        layoutF.addWidget(self.tableF4Box)
+        layoutF.addWidget(self.tableF5Box)
+
+
+        # add sections B-E to section A, makes thr tables grouping in a 6x5 grid
+        layoutA.addLayout(layoutB)             
+        layoutA.addLayout(layoutC)
+        layoutA.addLayout(layoutD)
+        layoutA.addLayout(layoutE)
+        layoutA.addLayout(layoutF)
+        layoutA.addLayout(spaces_layout)
+
+      
+        spaces_layout.addLayout(layoutA)
+        spaces_group.setLayout(layoutA)
+        layout.addWidget(spaces_group)       
 
         # choice buttons
         btnLayout = QHBoxLayout()
@@ -141,9 +256,19 @@ class filter_dialog(QDialog):
 
     def getFilters(self):
         return {
-            "tools": self.toolsBox.isChecked(),
-            "machinery": self.machineBox.isChecked(),       # check if checkboxes are selected
-            "tables": self.spacesBox.isChecked()
+          
+            # tools
+            "Screwdriver": self.screwdriverBox.isChecked(),
+            "Hammer:": self.hammerBox.isChecked(),
+
+            # spaces
+            "A1": self.tableA1Box.isChecked(),
+            "A2": self.tableA2Box.isChecked(),
+            "A3": self.tableA3Box.isChecked(),
+            "A4": self.tableA4Box.isChecked(),
+            "A5": self.tableA5Box.isChecked(),
+
+
         }
 
 
