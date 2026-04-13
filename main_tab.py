@@ -1,3 +1,4 @@
+# Hold all of the tabs, the combined UI 
 #tab tests
 
 import sys
@@ -29,10 +30,10 @@ class App(QMainWindow):
         self.title = 'SEIC 120 Database'
         self.left = 0
         self.top = 0
-        self.width = 600
-        self.height = 400
+        width = 600
+        height = 400
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setGeometry(self.left, self.top, width, height)
         
         self.table_widget = TableWidget(self)
         self.setCentralWidget(self.table_widget)
@@ -50,7 +51,7 @@ class TableWidget(QWidget):
 
         #create the tabs
         self.tab1 = myDashboard()
-        self.tab2 = myTables()
+        self.tab2 = table_Model()
         self.tab3 = myStudents()
         self.tab4 = myTools()
         self.tab5 = myReports()

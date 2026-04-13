@@ -27,6 +27,8 @@ class myTables(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        model = model
+
         #create the views
         self.table1 = QTableView()
         self.table2 = QTableView()
@@ -60,7 +62,7 @@ class myTables(QWidget):
 
         # set the window title
         self.setWindowTitle('Tables')
-        self.setGeometry(100, 100, 640, 420)    #set window size
+        self.setGeometry(100, 100, 1500, 700)    #set window size
 
         #set the layout
         mainLayout = QVBoxLayout(self)
