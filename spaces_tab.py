@@ -23,7 +23,7 @@ from table_model import tableModel
 
 import csv
 
-class myTables(QWidget):
+class mySpaces(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     model = tableModel("sampleStudents.csv")
 
     # create the main window
-    window = myTables(model)
+    window = mySpaces(model)
 
     # start the event loop
     sys.exit(app.exec())
