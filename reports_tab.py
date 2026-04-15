@@ -65,8 +65,9 @@ class myReports(QWidget):
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
 
-        #layout for bottom table
-        studentsData = tableModel("sampleReports.csv")              
+        #stretch entries to fit
+        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
         studentsDataLayout = QVBoxLayout()
 
         studentsDataLayout.addWidget(self.studentsData)
@@ -105,8 +106,6 @@ class myReports(QWidget):
         self.mainLayout.addLayout(layout)
 
 
-
-
 class filter_dialog(QDialog):
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -135,6 +134,21 @@ class filter_dialog(QDialog):
         spaces_group = QGroupBox("Tables")
         spaces_layout = QHBoxLayout()
 
+        """ for section in ["A", "B", "C", "D", "E", "F"]:
+            tempLayout = QVBoxLayout()
+            #create/reset the layout
+
+            for table in [1, 2, 3, 4, 5]:
+                string = f"{section}{table}"
+                box = QCheckBox(string)
+                #create the checkbox with a certain string
+
+                tempLayout.addWidget(box)
+                #add box to the layout
+            
+            spaces_layout.addLayout(tempLayout)
+            #add the created layout to the overall layout """
+
         #section A
         layoutA = QVBoxLayout()
         
@@ -144,14 +158,14 @@ class filter_dialog(QDialog):
         self.tableA4Box = QCheckBox("A4")
         self.tableA5Box = QCheckBox("A5")
 
-        spaces_layout.addWidget(self.tableA1Box)
-        spaces_layout.addWidget(self.tableA2Box)
-        spaces_layout.addWidget(self.tableA3Box)
-        spaces_layout.addWidget(self.tableA4Box)
-        spaces_layout.addWidget(self.tableA5Box)
+        layoutA.addWidget(self.tableA1Box)
+        layoutA.addWidget(self.tableA2Box)
+        layoutA.addWidget(self.tableA3Box)
+        layoutA.addWidget(self.tableA4Box)
+        layoutA.addWidget(self.tableA5Box)
 
         # section B
-        layoutB = QHBoxLayout()
+        layoutB = QVBoxLayout()
 
         self.tableB1Box = QCheckBox("B1")
         self.tableB2Box = QCheckBox("B2")
@@ -166,7 +180,7 @@ class filter_dialog(QDialog):
         layoutB.addWidget(self.tableB5Box)
 
         # section C
-        layoutC = QHBoxLayout()
+        layoutC = QVBoxLayout()
 
         self.tableC1Box = QCheckBox("C1")
         self.tableC2Box = QCheckBox("C2")
@@ -182,7 +196,7 @@ class filter_dialog(QDialog):
 
 
         # section D
-        layoutD = QHBoxLayout()
+        layoutD = QVBoxLayout()
 
         self.tableD1Box = QCheckBox("D1")
         self.tableD2Box = QCheckBox("D2")
@@ -197,7 +211,7 @@ class filter_dialog(QDialog):
         layoutD.addWidget(self.tableD5Box)
 
         # section E
-        layoutE = QHBoxLayout()
+        layoutE = QVBoxLayout()
 
         self.tableE1Box = QCheckBox("E1")
         self.tableE2Box = QCheckBox("E2")
@@ -212,7 +226,7 @@ class filter_dialog(QDialog):
         layoutE.addWidget(self.tableE5Box)
 
         # section F
-        layoutF = QHBoxLayout()
+        layoutF = QVBoxLayout()
 
         self.tableF1Box = QCheckBox("F1")
         self.tableF2Box = QCheckBox("F2")
@@ -228,16 +242,15 @@ class filter_dialog(QDialog):
 
 
         # add sections B-E to section A, makes thr tables grouping in a 6x5 grid
-        layoutA.addLayout(layoutB)             
-        layoutA.addLayout(layoutC)
-        layoutA.addLayout(layoutD)
-        layoutA.addLayout(layoutE)
-        layoutA.addLayout(layoutF)
-        layoutA.addLayout(spaces_layout)
+        spaces_layout.addLayout(layoutA)
+        spaces_layout.addLayout(layoutB)             
+        spaces_layout.addLayout(layoutC)
+        spaces_layout.addLayout(layoutD)
+        spaces_layout.addLayout(layoutE)
+        spaces_layout.addLayout(layoutF)
 
       
-      
-        spaces_group.setLayout(layoutA)
+        spaces_group.setLayout(spaces_layout)
         layout.addWidget(spaces_group)       
 
         # choice buttons
