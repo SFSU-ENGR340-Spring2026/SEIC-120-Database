@@ -66,10 +66,10 @@ class myTools(QWidget):
        
         #buttons
         addBtn = QPushButton()
-        addBtn.setText("Add")
+        addBtn.setText("Add Tool")
 
         delBtn = QPushButton()
-        delBtn.setText("Remove")
+        delBtn.setText("Remove Tool")
 
         #place to enter value
         self.nameEntry = QLineEdit()
@@ -106,15 +106,12 @@ class myTools(QWidget):
     def add_Tool(self):
         newToolData = []
 
-        newToolData.append(self.nameEntry.text())
-        newToolData.append(self.quanEntry.text())
-        newToolData.append(self.condEntry.text())
-        newToolData.append(self.tagEntry.text())
-        newToolData.append(self.locatEntry.text())
-        #add all entries to a list
+        for entry in self.entries:
+            newToolData.append(entry.text())
+            #add all entries to a list
 
         self.model.add_row(newToolData)
-        #add to table
+        #add list to table
     
     def remove_tool(self):
     #remove a single selected row from the db
@@ -126,7 +123,6 @@ class myTools(QWidget):
         if index.isValid():
             self.model.del_row(index.row())
             #remove it
-
 
 
     def reset_entry_text(self):
