@@ -72,7 +72,7 @@ class mySpaces(QWidget):
 
         tableLayout = QHBoxLayout()
 
-        #create a button
+        """ #create a button
         button1 = QPushButton()
         button1.setText("Add")
 
@@ -84,16 +84,13 @@ class mySpaces(QWidget):
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(entry)
         buttonLayout.addWidget(button1)
-        buttonLayout.addWidget(button2)
+        buttonLayout.addWidget(button2) """
 
         #add table to layout
-        tableLayout.addWidget(self.table1)
-        tableLayout.addWidget(self.table2)
-        tableLayout.addWidget(self.table3)
-        tableLayout.addWidget(self.table4)
-        tableLayout.addWidget(self.table5)
+        for table in self.spaces:
+            tableLayout.addWidget(table)
 
-        mainLayout.addLayout(buttonLayout)
+        # mainLayout.addLayout(buttonLayout)
         mainLayout.addLayout(tableLayout)
 
         """ print("table visible?", self.table.isVisible())
