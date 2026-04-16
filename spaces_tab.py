@@ -42,12 +42,14 @@ class mySpaces(QWidget):
         #list of what filters each table uses
 
         location_column = model.fieldIndex("location")
+        tableLayout = QHBoxLayout()
 
         for space, filter in zip(self.spaces, self.filters):
-            
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
+
             proxy_model.setSourceModel(model)
+            #give the proxy model a source
             
             proxy_model.setFilterKeyColumn(location_column)
             # filter by the location column in the SQLite-backed model
@@ -57,8 +59,11 @@ class mySpaces(QWidget):
             #the filter is case insensitive, and wildcard, meaning anything starting 
             # with the relevant filter is found
             
-            #set the model
+            #set the proxy into view
             space.setModel(proxy_model) 
+            #add view to layout
+            tableLayout.addWidget(space)
+
         
         # print(self.items)
 
@@ -69,8 +74,6 @@ class mySpaces(QWidget):
         #set the layout
         mainLayout = QVBoxLayout(self)
         self.setLayout(mainLayout)
-
-        tableLayout = QHBoxLayout()
 
         """ #create a button
         button1 = QPushButton()
@@ -86,19 +89,10 @@ class mySpaces(QWidget):
         buttonLayout.addWidget(button1)
         buttonLayout.addWidget(button2) """
 
-        #add table to layout
-        for table in self.spaces:
-            tableLayout.addWidget(table)
 
         # mainLayout.addLayout(buttonLayout)
         mainLayout.addLayout(tableLayout)
 
-        """ print("table visible?", self.table.isVisible())
-        print("table size:", self.table.size())
-        print("geometry:", self.table.geometry())
-        print("layout on window:", self.layout())
-         """
-        
         #remove ability to edit table directly
         # self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
