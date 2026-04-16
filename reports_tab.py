@@ -134,6 +134,8 @@ class filter_dialog(QDialog):
         spaces_group = QGroupBox("Tables")
         spaces_layout = QHBoxLayout()
 
+        #code works but does not return each filter individually
+        #so might be bad for filter purposes
         """ for section in ["A", "B", "C", "D", "E", "F"]:
             tempLayout = QVBoxLayout()
             #create/reset the layout
