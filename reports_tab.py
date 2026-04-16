@@ -312,7 +312,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # create the main window
-    dataModel = tableModel("sampleReports.csv")
+    dataModel = tableModel("reports_app")
     window = myReports(dataModel)
 
     # start the event loop

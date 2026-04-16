@@ -1,154 +1,223 @@
-import sys
-from PyQt6.QtCore import Qt, QAbstractTableModel, QSortFilterProxyModel, QModelIndex
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QTabWidget, QWidget,
-    QVBoxLayout, QTableView, QTableWidgetItem
-)
 import csv
+import sqlite3
+from pathlib import Path
 
-class tableModel(QAbstractTableModel):
-    def __init__(self, file):
-        super().__init__()
-        self._data = self.loadCSV(file)
+from PyQt6.QtCore import Qt
+from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
 
 
-    def rowCount(self, parent=None):
-    #built in necessary func
-    #sets table row count
-        return len(self._data)
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "database.sqlite3"
+CONNECTION_NAME = "seic_database"
 
-    def columnCount(self, parent=None):
-    #same, sets col count
-        return len(self._data[0]) if self._data else 0
-    
-    def addRow(self, newData):
-        self._data.append(newData)
+TABLE_SPECS = {
+    "students_app": {
+        "aliases": {"sampleStudents.csv", "students_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS students_app (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                tool TEXT DEFAULT 'None',
+                location TEXT DEFAULT 'None'
+            )
+        """,
+        "headers": ["ID", "Name", "Tools", "Location"],
+        "editable_columns": ["id", "name", "tool", "location"],
+        "seed_file": BASE_DIR / "sampleStudents.csv",
+        "seed_columns": ["id", "name", "tool", "location"],
+        "seed_transform": lambda row: (
+            row.get("ID", "").strip(),
+            row.get("Name", "").strip(),
+            row.get("Tools", "").strip(),
+            row.get("Location", "").strip(),
+        ),
+    },
+    "tools_app": {
+        "aliases": {"sampleData.csv", "tools_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS tools_app (
+                name TEXT,
+                quantity INTEGER,
+                condition TEXT,
+                tag TEXT,
+                table_name TEXT
+            )
+        """,
+        "headers": ["Tool", "Quantity", "Condition", "Tag", "Table"],
+        "editable_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "seed_file": BASE_DIR / "sampleData.csv",
+        "seed_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "seed_transform": lambda row: (
+            row.get("Tool", "").strip(),
+            row.get("Quantity", "").strip(),
+            row.get("Condition", "").strip(),
+            row.get("Tag", "").strip(),
+            row.get("Table", "").strip(),
+        ),
+    },
+    "reports_app": {
+        "aliases": {"sampleReports.csv", "reports_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS reports_app (
+                name TEXT,
+                time TEXT,
+                machinery TEXT,
+                table_name TEXT,
+                tools TEXT,
+                notes TEXT
+            )
+        """,
+        "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
+        "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+        "seed_file": BASE_DIR / "sampleReports.csv",
+        "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+        "seed_transform": lambda row: (
+            row.get("Name: ", "").strip(),
+            row.get("Time:", "").strip(),
+            row.get("Machinery:", "").strip(),
+            row.get("Table:", "").strip(),
+            row.get("Tools:", "").strip(),
+            row.get("Notes:", "").strip(),
+        ),
+    },
+    "spaces_app": {
+        "aliases": {"sampleTables.csv", "spaces_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS spaces_app (
+                student_id TEXT,
+                name TEXT,
+                tool TEXT,
+                location TEXT DEFAULT 'None'
+            )
+        """,
+        "headers": ["Student ID", "Name", "Tool", "Location"],
+        "editable_columns": ["student_id", "name", "tool", "location"],
+        "seed_file": BASE_DIR / "sampleTables.csv",
+        "seed_columns": ["student_id", "name", "tool", "location"],
+        "seed_transform": lambda row: (
+            row.get("StudentID", "").strip(),
+            row.get("Name", "").strip(),
+            row.get("Tool", "").strip(),
+            "None",
+        ),
+    },
+}
 
-    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-    #loads given data point into the self.data thing
-        if not index.isValid():
-            return None
+SOURCE_TO_TABLE = {
+    alias: table_name
+    for table_name, spec in TABLE_SPECS.items()
+    for alias in spec["aliases"]
+}
 
-        if role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
-            return self._data[index.row()][index.column()]
 
+def _resolve_table_name(source_name):
+    try:
+        return SOURCE_TO_TABLE[source_name]
+    except KeyError as exc:
+        valid_sources = ", ".join(sorted(SOURCE_TO_TABLE))
+        raise ValueError(f"Unknown table source '{source_name}'. Expected one of: {valid_sources}") from exc
+
+
+def _seed_table_if_empty(connection, table_name, spec):
+    seed_file = spec["seed_file"]
+    if not seed_file.exists():
+        return
+
+    cursor = connection.cursor()
+    row_count = cursor.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    if row_count:
+        return
+
+    with seed_file.open("r", newline="", encoding="utf-8") as csv_file:
+        reader = csv.DictReader(csv_file)
+        rows = [spec["seed_transform"](row) for row in reader]
+
+    if not rows:
+        return
+
+    placeholders = ", ".join("?" for _ in spec["seed_columns"])
+    columns = ", ".join(spec["seed_columns"])
+    cursor.executemany(
+        f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})",
+        rows,
+    )
+    connection.commit()
+
+
+def initialize_database():
+    connection = sqlite3.connect(DB_PATH)
+    try:
+        for table_name, spec in TABLE_SPECS.items():
+            connection.execute(spec["schema"])
+            _seed_table_if_empty(connection, table_name, spec)
+    finally:
+        connection.close()
+
+
+def create_connection():
+    initialize_database()
+
+    if QSqlDatabase.contains(CONNECTION_NAME):
+        db = QSqlDatabase.database(CONNECTION_NAME)
+    else:
+        db = QSqlDatabase.addDatabase("QSQLITE", CONNECTION_NAME)
+        db.setDatabaseName(str(DB_PATH))
+
+    if not db.isOpen() and not db.open():
         return None
 
-    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
-    #changes the edit part of the data
-    #tells the views looking at model that a thing changed
-        if not index.isValid() or role != Qt.ItemDataRole.EditRole:
-            return False
+    return db
 
-        self._data[index.row()][index.column()] = value
 
-        # notify all attached views that this cell changed
-        self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole])
-        return True
+class tableModel(QSqlTableModel):
+    def __init__(self, source_name, parent=None):
+        self.table_name = _resolve_table_name(source_name)
+        self.spec = TABLE_SPECS[self.table_name]
+        self.db = create_connection()
+        if self.db is None:
+            raise RuntimeError(f"Could not open SQLite database at {DB_PATH}")
 
-    def flags(self, index):
-    #?
-        if not index.isValid():
-            return Qt.ItemFlag.NoItemFlags
-        
-        return (
-            Qt.ItemFlag.ItemIsSelectable
-            | Qt.ItemFlag.ItemIsEnabled
-            | Qt.ItemFlag.ItemIsEditable
-        )
-    
-    def loadCSV(self, fileName):
-    #load csv into lists 
-    #input csv, output total dataset
-        with open(fileName, "r", newline="", encoding="utf-8") as fileInput:
-            reader = csv.reader(fileInput)
-            rows = list(reader)
-            self.headers = rows[0]
-            items = rows[1:]
-            return items
-    
-    def headerData(self, section, orientation, role):
-        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
-            return self.headers[section]
-        return None
-    
+        super().__init__(parent, self.db)
+        self.setTable(self.table_name)
+        self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
+
+        if not self.select():
+            raise RuntimeError(self.lastError().text())
+
+        for column, header in enumerate(self.spec["headers"]):
+            self.setHeaderData(column, Qt.Orientation.Horizontal, header)
+
     def add_row(self, values):
-    #function to add a row to the model
-        row = self.rowCount()
-        #where to insert
+        if len(values) != len(self.spec["editable_columns"]):
+            raise ValueError(
+                f"Expected {len(self.spec['editable_columns'])} values for {self.table_name}, "
+                f"received {len(values)}."
+            )
 
-        self.beginInsertRows(QModelIndex(), row, row)
-        self._data.append(values)
-        self.endInsertRows()
-    
+        row = self.rowCount()
+        if not self.insertRow(row):
+            raise RuntimeError(self.lastError().text())
+
+        for value, column_name in zip(values, self.spec["editable_columns"]):
+            column_index = self.fieldIndex(column_name)
+            self.setData(self.index(row, column_index), value)
+
+        if not self.submitAll():
+            self.revertAll()
+            raise RuntimeError(self.lastError().text())
+
+        self.select()
+
     def del_row(self, row):
-        if row < 0 or row >= len(self._data):
+        if row < 0 or row >= self.rowCount():
             return False
 
-        self.beginRemoveRows(QModelIndex(), row, row)
-        del self._data[row]
-        self.endRemoveRows()
+        if not self.removeRow(row):
+            return False
 
+        if not self.submitAll():
+            self.revertAll()
+            return False
+
+        self.select()
         return True
-
-
-class TabPage1(QWidget):
-    def __init__(self, model, name):
-        super().__init__()
-        layout = QVBoxLayout(self)
-
-        # table = QTableView()
-        # table.setModel(model)
-
-        proxy_model = QSortFilterProxyModel()
-        #create the model for filtering
-        proxy_model.setSourceModel(model)
-        proxy_model.setFilterKeyColumn(4)
-        #column 4 (0 index), checks to filter by this thing
-        proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        proxy_model.setFilterFixedString("none")
-
-        table = QTableView()
-        table.setModel(proxy_model)
-
-        layout.addWidget(table)
-
-class TabPage(QWidget):
-    def __init__(self, model, name):
-        super().__init__()
-        layout = QVBoxLayout(self)
-
-        table = QTableView()
-        table.setModel(model)
-
-        layout.addWidget(table)
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Shared table across tabs")
-
-        # data = [
-        #     ["Alice", "24"],
-        #     ["Bob", "31"],
-        #     ["Carol", "28"],
-        # ]
-
-        # one shared model
-        self.model = tableModel("sampleData.csv")
-
-        tabs = QTabWidget()
-        tabs.addTab(TabPage1(self.model, "Tab 1"), "Tab 1")
-        tabs.addTab(TabPage(self.model, "Tab 2"), "Tab 2")
-        tabs.addTab(TabPage(self.model, "Tab 3"), "Tab 3")
-
-        self.setCentralWidget(tabs)
-
-if __name__ == '__main__': 
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.resize(500, 300)
-    window.show()
-    sys.exit(app.exec())

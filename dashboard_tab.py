@@ -97,9 +97,9 @@ class myDashboard(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    studentsModel = tableModel("sampleStudents.csv")
-    notesModel = tableModel("sampleReports.csv")
-    toolsModel = tableModel("sampleData.csv")
+    studentsModel = tableModel("students_app")
+    notesModel = tableModel("reports_app")
+    toolsModel = tableModel("tools_app")
     
     # create the main window
     window = myDashboard(studentsModel, notesModel, toolsModel)

@@ -86,7 +86,7 @@ class myStudents(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    model = tableModel("sampleStudents.csv")
+    model = tableModel("students_app")
 
     # create the main window
     window = myStudents(model)

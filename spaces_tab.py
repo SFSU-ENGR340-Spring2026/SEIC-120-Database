@@ -41,14 +41,16 @@ class mySpaces(QWidget):
         self.filters = ["a*", "b*", "c*", "d*", "e*"]
         #list of what filters each table uses
 
+        location_column = model.fieldIndex("location")
+
         for space, filter in zip(self.spaces, self.filters):
             
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
             proxy_model.setSourceModel(model)
             
-            proxy_model.setFilterKeyColumn(3)
-            #column 3 (0 index), checks to filter by student location
+            proxy_model.setFilterKeyColumn(location_column)
+            # filter by the location column in the SQLite-backed model
             
             proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
             proxy_model.setFilterWildcard(filter)
@@ -110,7 +112,7 @@ class mySpaces(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    model = tableModel("sampleStudents.csv")
+    model = tableModel("spaces_app")
 
     # create the main window
     window = mySpaces(model)

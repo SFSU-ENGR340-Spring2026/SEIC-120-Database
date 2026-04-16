@@ -50,10 +50,10 @@ class TableWidget(QWidget):
         self.tabs = QTabWidget()
 
         #create models
-        studModel = dataTable("sampleStudents.csv")
-        noteModel = dataTable("sampleReports.csv")
-        spacesModel = dataTable("sampleTables.csv")
-        toolModel = dataTable("sampleData.csv")
+        studModel = dataTable("students_app")
+        noteModel = dataTable("reports_app")
+        spacesModel = dataTable("spaces_app")
+        toolModel = dataTable("tools_app")
 
         #create the tabs
         self.tab1 = myDashboard(studModel, noteModel, toolModel)   #3 models: students, notes, and tools
