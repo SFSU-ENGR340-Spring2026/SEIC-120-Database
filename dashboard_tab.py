@@ -19,9 +19,8 @@ from PyQt6.QtWidgets import (
     QHeaderView 
 )
 
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from table_model import tableModel
-
-
 import csv
 
 class myDashboard(QWidget):
@@ -63,7 +62,7 @@ class myDashboard(QWidget):
         self.create_layout("Student Notes: ", notesModel)
 
         #create tool layout
-        self.create_layout("Available Tools: ", toolsModel)
+        self.create_tools("Available Tools: ", toolsModel)
         
         #compile the layout
         finalLayout.addLayout(topThingLayout)
@@ -93,6 +92,40 @@ class myDashboard(QWidget):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)     
         
         self.mainLayout.addLayout(layout)
+
+    def create_tools(self, textBox, model):
+    #function repeated for each of the three sections in the dashboard
+    #students checked in, tools available, notes
+        layout = QVBoxLayout()
+        table = QTableView()
+        location_column = model.fieldIndex("location")
+
+        #section for entering data
+        header = QLineEdit()
+        header.setText(textBox)
+        header.setReadOnly(True)
+        layout.addWidget(header)
+
+        #create filter model, based on original model
+        proxy = QSortFilterProxyModel()
+        proxy.setSourceModel(model)
+
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        #make it stretch
+
+        proxy.setFilterKeyColumn(location_column)
+        # filter by the location column in the SQLite-backed model
+        
+        proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        proxy.setFilterFixedString("none")
+        #look for tools with no location, i.e. not with someone
+
+        table.setModel(proxy)
+        #give the proxy to the view     
+        
+        layout.addWidget(table)
+        self.mainLayout.addLayout(layout)
+        #add the view to the layout, and then to the main
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
