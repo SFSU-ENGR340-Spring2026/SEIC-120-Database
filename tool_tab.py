@@ -1,6 +1,4 @@
-#tools tab
-#add/remove tools
-#display the table
+#dashboard
 
 import sys
 from PyQt6.QtWidgets import (
