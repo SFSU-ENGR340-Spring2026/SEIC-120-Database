@@ -51,7 +51,7 @@ class myStudents(QWidget):
         self.stuIDLine = QLineEdit()
         self.stuIDLine.setPlaceholderText("Enter Student ID Number")  
 
-        self.entries = [self.nameLine, self.stuIDLine]
+        self.entries = [self.stuIDLine, self.nameLine]
 
         #add widgets to layout
         changeStudentsLayout.addWidget(self.stuIDLine)
