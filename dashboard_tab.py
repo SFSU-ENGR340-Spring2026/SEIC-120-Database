@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from table_model import tableModel
-import csv
+import csv, datetime
 
 class myDashboard(QWidget):
 #needs to be given 3 models, 
@@ -34,23 +34,23 @@ class myDashboard(QWidget):
         #create main layout
         self.mainLayout = QHBoxLayout()
 
-        studModel = studentsModel
-        toolModel = toolsModel
-        notModel = notesModel
+        self.studModel = studentsModel
+        self.toolModel = toolsModel
+        self.noteModel = notesModel
         #create 3 different models for each thing
 
         #layout for top thing
         topThingLayout = QHBoxLayout()
 
         #place to enter student id
-        idEntry = QLineEdit()
-        idEntry.setPlaceholderText("Enter Student ID")
+        self.idEntry = QLineEdit()
+        self.idEntry.setPlaceholderText("Enter Student ID")
 
         #for spaces
-        spaceName = QLineEdit()
-        spaceName.setPlaceholderText("What table section?")
-        spaceIn = QPushButton()
-        spaceIn.setText("Assign Table")
+        self.spaceName = QLineEdit()
+        self.spaceName.setPlaceholderText("What table section?")
+        self.spaceIn = QPushButton()
+        self.spaceIn.setText("Assign Table")
             #no need for unassign table, happens when they check out
         
         #two buttons for check in and check out
@@ -58,11 +58,13 @@ class myDashboard(QWidget):
         checkOut = QPushButton()
         checkIn.setText("Check In")
         checkOut.setText("Check Out")
+        checkIn.clicked.connect(lambda:self.checkIn())
+        checkOut.clicked.connect(lambda:self.checkOut())
 
         #add them to the layout
-        topThingLayout.addWidget(idEntry)
-        topThingLayout.addWidget(spaceName)
-        topThingLayout.addWidget(spaceIn)
+        topThingLayout.addWidget(self.idEntry)
+        topThingLayout.addWidget(self.spaceName)
+        topThingLayout.addWidget(self.spaceIn)
         topThingLayout.addWidget(checkIn)
         topThingLayout.addWidget(checkOut)
 
@@ -70,13 +72,13 @@ class myDashboard(QWidget):
         checkInLayout = QHBoxLayout()
 
         #create table layout
-        self.create_students("Who's currently In?", studentsModel)
+        self.create_students("Who's currently In?", self.studModel)
 
         #create note layout
-        self.create_notes("Student Notes: ", notesModel)
+        self.create_notes("Student Notes: ", self.noteModel)
 
         #create tool layout
-        self.create_tools("Available Tools: ", toolsModel)
+        self.create_tools("Available Tools: ", self.toolModel)
         
         #compile the layout
         finalLayout.addLayout(topThingLayout)
@@ -105,11 +107,14 @@ class myDashboard(QWidget):
         #for tools
         # toolName = QLineEdit()
         # toolName.setPlaceholderText("Tool Name")
-
+        
+        #create the buttons, set their text, 
         toolIn = QPushButton()
         toolOut = QPushButton()
         toolIn.setText("Give Tool")
         toolOut.setText("Return Tool")
+        toolIn.clicked.connect(lambda:self.assignTool(table))
+        toolOut.clicked.connect(lambda:self.returnTool(table))
                 
         # checkInLayout.addWidget(toolName)
         topLay.addWidget(toolIn)
@@ -188,6 +193,8 @@ class myDashboard(QWidget):
 
         self.toolProxy.setFilterKeyColumn(location_column)
         # filter by the location column in the SQLite-backed model
+
+        table.clicked.connect(lambda:self.getTool(table))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.toolProxy.setFilterFixedString("none")
@@ -214,6 +221,40 @@ class myDashboard(QWidget):
         #then create model for it, and load into note view
         self.proxyView.setFilterFixedString(str(row.data()))
         
+    def getTool(self, table):
+    #function to get the currently selected tool and store it somewhere
+        currentToolIndex = table.currentIndex()
+
+        self.currentTool = currentToolIndex.data()
+
+    def assignTool(self, table):
+    #given table of currently in students, give them tool thats currently clicked
+        #grab the row and name of clicked tool
+        #if there are 0 tools, error msg
+        #add it to the tool section of the clicked on student
+            #if theres already something, add a comma
+        #decrement quantity
+        #create note that they borrowed it  
+        return
+    
+    def returnTool(self):
+    #given a clicked on tool, remove from the student, increment quantity
+    #make note
+        return  
+    
+    def checkIn(self):
+    #function to check a student in
+        #grabs id and table section (section not necessary, defaults to In?)
+        #changes location
+        return
+
+    def checkOut(self):
+    #function to check a student out
+        #click on the student getting out
+        #checks if anything needs to be returned
+        #sets location to none
+        #makes note of day/time and that they left
+        return
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
