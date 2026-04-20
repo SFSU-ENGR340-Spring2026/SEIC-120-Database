@@ -22,7 +22,9 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QTableView,
     QDialog,
-    QCheckBox
+    QCheckBox,
+    QTextEdit
+
 )
 from table_model import tableModel
 
@@ -54,6 +56,12 @@ class myReports(QWidget):
 
         filterBtn.clicked.connect(self.openFilters)     # connecting this click function to opening pop up
 
+        reportBtn = QPushButton()
+        reportBtn.setText("Make Student Report")
+
+        reportBtn.clicked.connect(self.openMakeReport_dialog)
+
+
         #place to enter value
         entryLine = QLineEdit()
 
@@ -61,6 +69,7 @@ class myReports(QWidget):
         changeStudentsLayout.addWidget(entryLine)
         changeStudentsLayout.addWidget(pullBtn)
         changeStudentsLayout.addWidget(filterBtn)
+        changeStudentsLayout.addWidget(reportBtn)
 
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
@@ -90,6 +99,27 @@ class myReports(QWidget):
             filters = dialog.getFilters()
             print(filters)
 
+    def openMakeReport_dialog(self):
+        reporting = makeReport_dialog(self)
+
+        if reporting.exec():
+            report = reporting.getConfirmReport()        # returns if report has been made
+            print(report)
+
+
+            # confirm/deny pop up window
+            if report == "Report Created.":
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Information)
+                msg.setText("Report Created.")
+                msg.setWindowTitle("Confirmed")
+                msg.exec()
+            else: 
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Critical)
+                msg.setText("Please Enter Information.")
+                msg.setWindowTitle("Denied")
+                msg.exec()
 
 
     def create_layout(self, layoutName, textBox):
@@ -104,6 +134,59 @@ class myReports(QWidget):
         layout.addWidget(data)
 
         self.mainLayout.addLayout(layout)
+
+class makeReport_dialog(QDialog):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Make Student Report")
+        self.setFixedSize(500,700)
+
+        layout = QVBoxLayout(self)
+        topLayout = QHBoxLayout(self)
+
+
+        # Entery Text 
+
+        # top layout
+        self.stuIDLine = QLineEdit()
+        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+
+        self.stuNameLine = QLineEdit()
+        self.stuNameLine.setPlaceholderText("Enter Student Name")
+        
+        topLayout.addWidget(self.stuIDLine)
+        topLayout.addWidget(self.stuNameLine)
+        layout.addLayout(topLayout)
+
+        self.stuReport = QTextEdit()
+        self.stuReport.setPlaceholderText("Enter Student Report")
+        layout.addWidget(self.stuReport, 1)
+
+        # Buttons
+        btnLayout = QHBoxLayout()
+
+        submitBtn = QPushButton("Submit")
+        cancelBtn = QPushButton("Cancel")
+
+        submitBtn.clicked.connect(self.accept)           
+        cancelBtn.clicked.connect(self.reject)
+
+        btnLayout.addWidget(submitBtn)
+        btnLayout.addWidget(cancelBtn)
+
+        layout.addLayout(btnLayout)
+
+    def getConfirmReport(self):
+        if self.stuIDLine.text().strip() and self.stuReport.toPlainText().strip():
+            return("Report Created.")
+
+        else:
+            return("Please fill in information.")
+        
+    def warning(self):
+            pass
+          
 
 
 class filter_dialog(QDialog):
