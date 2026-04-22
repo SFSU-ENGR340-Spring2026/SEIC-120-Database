@@ -49,7 +49,8 @@ class TableWidget(QWidget):
         self.tabs = QTabWidget()
 
         #create the tabs
-        self.tab1 = myDashboard()
+        self.tab1 = myDashboard((studentsModel, notesModel, toolsModel)
+)
         self.tab2 = myTables()
         self.tab3 = myStudents()
         self.tab4 = myTools()
