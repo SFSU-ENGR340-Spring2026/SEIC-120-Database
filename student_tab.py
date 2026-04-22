@@ -51,7 +51,7 @@ class myStudents(QWidget):
         self.stuIDLine = QLineEdit()
         self.stuIDLine.setPlaceholderText("Enter Student ID Number")  
 
-        self.entries = [self.nameLine, self.stuIDLine]
+        self.entries = [self.stuIDLine, self.nameLine]
 
         #add widgets to layout
         changeStudentsLayout.addWidget(self.stuIDLine)
@@ -59,8 +59,13 @@ class myStudents(QWidget):
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
 
+        #search bar
+        searchBar = QLineEdit()
+        searchBar.setPlaceholderText("Search for student ID or Name")
+
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
+        self.mainLayout.addWidget(searchBar)
 
         self.studModel = model
         #create the model for the data
@@ -110,6 +115,7 @@ class myStudents(QWidget):
             self.studModel.del_row(index.row())
     
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
 
     model = tableModel("students_app")

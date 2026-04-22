@@ -47,6 +47,11 @@ class myTools(QWidget):
         #layout for top thing
         self.create_top_layout()
 
+        #search bar
+        searchBar = QLineEdit()
+        searchBar.setPlaceholderText("Search for student ID or Name")
+        self.mainLayout.addWidget(searchBar)
+
         #layout for bottom table
         self.create_bot_layout()
 
