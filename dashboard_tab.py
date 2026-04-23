@@ -121,8 +121,16 @@ class myDashboard(QWidget):
         topLay.addWidget(toolOut)
 
         table = QTableView()
-        table.setModel(model)
-        #create table view, set model, add to layout
+        #create view
+
+        location_column = model.fieldIndex("location")
+        proxy = myFilterProxyModel(excluded_values=["none", "None"], column=location_column)
+        #create proxy
+        proxy.setSourceModel(model)
+        #set model
+        table.setModel(proxy)
+        #attach view to model
+
         layout.addLayout(topLay)
         layout.addWidget(table)
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch) 
@@ -176,7 +184,7 @@ class myDashboard(QWidget):
     #students checked in, tools available, notes
         layout = QVBoxLayout()
         table = QTableView()
-        location_column = model.fieldIndex("location")
+        location_column = model.fieldIndex("quantity")
 
         #section for entering data
         header = QLineEdit()
@@ -185,7 +193,7 @@ class myDashboard(QWidget):
         layout.addWidget(header)
 
         #create filter model, based on original model
-        self.toolProxy = QSortFilterProxyModel()
+        self.toolProxy = myFilterProxyModel(excluded_values=[0], column=location_column)
         self.toolProxy.setSourceModel(model)
 
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -197,8 +205,7 @@ class myDashboard(QWidget):
         table.clicked.connect(lambda:self.getTool(table))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.toolProxy.setFilterFixedString("none")
-        #look for tools with no location, i.e. not with someone
+        #look for tools with not 0 quantity, i.e. avaiable
 
         table.setModel(self.toolProxy)
         #give the proxy to the view     
@@ -211,7 +218,7 @@ class myDashboard(QWidget):
         row = table.currentIndex()
         #get the person who's been clicked on
         
-        print(row.data())           #for testing
+        # print(row.data())           #for testing
 
         #check that it's an id (or at least an integer)
             #return if not
@@ -255,6 +262,20 @@ class myDashboard(QWidget):
         #sets location to none
         #makes note of day/time and that they left
         return
+
+class myFilterProxyModel(QSortFilterProxyModel):
+    def __init__(self, excluded_values=None, column=1, parent=None):
+        super().__init__(parent)
+        self.excluded_values = set(excluded_values or [])
+        self.column = column
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        index = self.sourceModel().index(source_row, self.column, source_parent)
+        value = self.sourceModel().data(index, Qt.ItemDataRole.DisplayRole)
+
+        # Exclude rows whose value is in the blacklist
+        #inverse of normal logic, returning rows that do not meet the filter
+        return value not in self.excluded_values
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
