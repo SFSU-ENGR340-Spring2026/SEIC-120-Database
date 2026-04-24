@@ -237,3 +237,7 @@ class tableModel(QSqlTableModel):
 
         self.select()
         return True
+    
+    def change_value(self, row, colName, value):
+        column_index = self.fieldIndex(colName)
+        self.setData(self.index(row, column_index), value)
