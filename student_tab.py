@@ -18,9 +18,12 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox,
     QTableView,
-    QHeaderView
+    QHeaderView,
+    QComboBox,
+
 )
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtGui import QIcon
 from table_model import tableModel
 
 
@@ -46,7 +49,7 @@ class myStudents(QWidget):
         delBtn.clicked.connect(lambda:self.rem_student())
 
         #place to enter values
-        self.nameLine = QLineEdit()
+        self.nameLine = QLineEdit()                                 
         self.nameLine.setPlaceholderText("Enter Student Name")
 
         self.stuIDLine = QLineEdit()
@@ -54,9 +57,28 @@ class myStudents(QWidget):
 
         self.entries = [self.stuIDLine, self.nameLine]
 
+        # Drop down menu for Student Certifications
+        self.certBox = QComboBox()
+        # icons
+        printIcon = QIcon('3D_print_icon')
+        lzrIcon = QIcon('lzr_icon')
+        toolIcon = QIcon('tool_Icon')
+
+        self.certBox.addItem("Student Certifications")
+        self.certBox.addItem(toolIcon, "Hand Tool")
+        self.certBox.addItem(lzrIcon, "Laser Cutter/Engraver")
+        self.certBox.addItem(printIcon, '3D Printer')
+        self.certBox.addItem("❌ None")
+
+        # cant select "Student Certifications" as an option, acts more as a title for drop down
+        item = self.certBox.model().item(0)
+        item.setEnabled(False) 
+
+
         #add widgets to layout
         changeStudentsLayout.addWidget(self.stuIDLine)
         changeStudentsLayout.addWidget(self.nameLine)
+        changeStudentsLayout.addWidget(self.certBox)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
 

@@ -14,7 +14,8 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QAbstractItemView,
     QMessageBox,
-    QTableView
+    QTableView,
+    QComboBox,
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -35,10 +36,11 @@ class mySpaces(QWidget):
         self.table3 = QTableView()
         self.table4 = QTableView()
         self.table5 = QTableView()
+        self.table6 = QTableView()
 
-        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5]
+        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5, self.table6]
         #list of views
-        self.filters = ["a*", "b*", "c*", "d*", "e*"]
+        self.filters = ["a*", "b*", "c*", "d*", "e*", "f*"]
         #list of what filters each table uses
 
         location_column = model.fieldIndex("location")
@@ -58,6 +60,7 @@ class mySpaces(QWidget):
             proxy_model.setFilterWildcard(filter)
             #the filter is case insensitive, and wildcard, meaning anything starting 
             # with the relevant filter is found
+
             
             #set the proxy into view
             space.setModel(proxy_model) 
