@@ -113,14 +113,14 @@ class myDashboard(QWidget):
         toolOut = QPushButton()
         toolIn.setText("Give Tool")
         toolOut.setText("Return Tool")
-        toolIn.clicked.connect(lambda:self.assignTool(table))
-        toolOut.clicked.connect(lambda:self.returnTool(table))
+        toolIn.clicked.connect(lambda:self.assignTool(self.studView))
+        toolOut.clicked.connect(lambda:self.returnTool(self.studView))
                 
         # checkInLayout.addWidget(toolName)
         topLay.addWidget(toolIn)
         topLay.addWidget(toolOut)
 
-        table = QTableView()
+        self.studView = QTableView()
         #create view
 
         location_column = model.fieldIndex("location")
@@ -128,15 +128,15 @@ class myDashboard(QWidget):
         #create proxy
         proxy.setSourceModel(model)
         #set model
-        table.setModel(proxy)
+        self.studView.setModel(proxy)
         #attach view to model
 
         layout.addLayout(topLay)
-        layout.addWidget(table)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch) 
+        layout.addWidget(self.studView)
+        self.studView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch) 
 
         #upon clicking on the some student, the table will load in
-        table.clicked.connect(lambda:self.showReports(table))     
+        self.studView.clicked.connect(lambda:self.showReports(self.studView))   
         
         self.mainLayout.addLayout(layout)
 
@@ -162,16 +162,16 @@ class myDashboard(QWidget):
         table = QTableView()
         #create table view
 
-        self.proxyView = QSortFilterProxyModel()
+        self.noteProxy = QSortFilterProxyModel()
         #create a proxy view, needs to be accessible so i can futz with it later
-        self.proxyView.setSourceModel(model)
+        self.noteProxy.setSourceModel(model)
         #set proxy's source
-        self.proxyView.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.noteProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         #change filters case sensitivity
-        self.proxyView.setFilterKeyColumn(0)
+        self.noteProxy.setFilterKeyColumn(0)
         #searches names (should be id), for the correct one to display
 
-        table.setModel(self.proxyView)
+        table.setModel(self.noteProxy)
         #set model to view
         layout.addWidget(table)
         #add view to layout
@@ -183,7 +183,7 @@ class myDashboard(QWidget):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
         layout = QVBoxLayout()
-        table = QTableView()
+        self.toolView = QTableView()
         location_column = model.fieldIndex("quantity")
 
         #section for entering data
@@ -196,21 +196,21 @@ class myDashboard(QWidget):
         self.toolProxy = myFilterProxyModel(excluded_values=[0], column=location_column)
         self.toolProxy.setSourceModel(model)
 
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.toolView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         #make it stretch
 
         self.toolProxy.setFilterKeyColumn(location_column)
         # filter by the location column in the SQLite-backed model
 
-        table.clicked.connect(lambda:self.getTool(table))
+        self.toolView.clicked.connect(lambda:self.getTool(self.toolView))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         #look for tools with not 0 quantity, i.e. avaiable
 
-        table.setModel(self.toolProxy)
+        self.toolView.setModel(self.toolProxy)
         #give the proxy to the view     
         
-        layout.addWidget(table)
+        layout.addWidget(self.toolView)
         self.mainLayout.addLayout(layout)
         #add the view to the layout, and then to the main
 
@@ -226,7 +226,7 @@ class myDashboard(QWidget):
         #search id for reports on it (filter by the day?)
 
         #then create model for it, and load into note view
-        self.proxyView.setFilterFixedString(str(row.data()))
+        self.noteProxy.setFilterFixedString(str(row.data()))
         
     def getTool(self, table):
     #function to get the currently selected tool and store it somewhere
@@ -241,10 +241,37 @@ class myDashboard(QWidget):
         #add it to the tool section of the clicked on student
             #if theres already something, add a comma
         #decrement quantity
-        #create note that they borrowed it  
-        return
+        #create note that they borrowed it
+ 
+        toolRow = self.toolView.currentIndex()
+        #find the tool
+
+        studRow = self.studView.currentIndex()
+        searchColumn = "tool"
+        #find the student, and the students' tool to change
+
+        toolList = str(studRow.data())  #text of students tool list
+        currTool = str(toolRow.data())  #text of tool to be added
+        
+        if toolList == "":
+        #if first time
+            currTool = f"+{str(toolRow.data())}"
+            self.studModel.change_value(studRow.row(), searchColumn, currTool) 
+            #add tool with + at start
+        else:
+            toolList = f"{toolList}\n+{currTool}"
+            #add existing list and new tool
+
+            self.studModel.change_value(studRow.row(), searchColumn, toolList) 
+            #change students tool list with new string
+            table.resizeRowsToContents()
+            #change row height
+
+        #check for 0 tools
+        #decrement tool quantity
+        #generate note
     
-    def returnTool(self):
+    def returnTool(self, table):
     #given a clicked on tool, remove from the student, increment quantity
     #make note
         return  
