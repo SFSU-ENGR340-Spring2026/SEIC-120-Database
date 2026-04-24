@@ -16,7 +16,9 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox,
     QTableView,
-    QHeaderView 
+    QHeaderView,
+    QDialog,
+    QTextEdit
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -157,6 +159,8 @@ class myDashboard(QWidget):
         addNote.setText("Add Note")
         headerLayout.addWidget(addNote)
 
+        addNote.clicked.connect(self.add_note)
+
         layout.addLayout(headerLayout)
 
         table = QTableView()
@@ -262,6 +266,28 @@ class myDashboard(QWidget):
         #sets location to none
         #makes note of day/time and that they left
         return
+    
+    def add_note(self):
+        reporting = makeNote_dialog(self)
+
+        if reporting.exec():
+            report = reporting.getConfirmReport()        # returns if report has been made
+            print(report)
+
+
+            # confirm/deny pop up window
+            if report == "Report Created.":
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Information)
+                msg.setText("Note Created.")
+                msg.setWindowTitle("Confirmed")
+                msg.exec()
+            else: 
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Critical)
+                msg.setText("Please Enter Information.")
+                msg.setWindowTitle("Denied")
+                msg.exec()
 
 class myFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, excluded_values=None, column=1, parent=None):
@@ -276,12 +302,72 @@ class myFilterProxyModel(QSortFilterProxyModel):
         # Exclude rows whose value is in the blacklist
         #inverse of normal logic, returning rows that do not meet the filter
         return value not in self.excluded_values
+    
+class makeNote_dialog(QDialog):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Make Note")
+        self.setFixedSize(700,700)
+
+        layout = QVBoxLayout(self)
+        topLayout = QHBoxLayout(self)
+
+
+        # Entery Text 
+
+        # top layout
+        self.stuIDLine = QLineEdit()
+        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+
+        self.toolIDLine = QLineEdit()
+        self.toolIDLine.setPlaceholderText("Enter Tool ID")
+
+        self.locationLine = QLineEdit()
+        self.locationLine.setPlaceholderText("Enter Location")
+
+        self.timeLine = QLineEdit()
+        self.timeLine.setPlaceholderText("YYYY-MM-DD-HH:MM")
+        
+        topLayout.addWidget(self.stuIDLine)
+        topLayout.addWidget(self.toolIDLine)
+        topLayout.addWidget(self.locationLine)
+        topLayout.addWidget(self.timeLine)
+        layout.addLayout(topLayout)
+
+        self.stuReport = QTextEdit()
+        self.stuReport.setPlaceholderText("Enter Student Report")
+        layout.addWidget(self.stuReport, 1)
+
+        # Buttons
+        btnLayout = QHBoxLayout()
+
+        submitBtn = QPushButton("Submit")
+        cancelBtn = QPushButton("Cancel")
+
+        submitBtn.clicked.connect(self.accept)           
+        cancelBtn.clicked.connect(self.reject)
+
+        btnLayout.addWidget(submitBtn)
+        btnLayout.addWidget(cancelBtn)
+
+        layout.addLayout(btnLayout)
+
+    def getConfirmReport(self):
+        if self.stuIDLine.int().strip() and self.stuReport.toPlainText().strip():
+            return("Report Created.")
+
+        else:
+            return("Please fill in information.")
+        
+    def warning(self):
+            pass
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     studentsModel = tableModel("students_app")
-    notesModel = tableModel("reports_app")
+    notesModel = tableModel("notes_app")
     toolsModel = tableModel("tools_app")
     
     # create the main window

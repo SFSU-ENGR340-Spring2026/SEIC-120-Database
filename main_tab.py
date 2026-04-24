@@ -51,7 +51,7 @@ class TableWidget(QWidget):
 
         #create models
         studModel = dataTable("students_app")  
-        noteModel = dataTable("reports_app")
+        noteModel = dataTable("notes_app")
         toolModel = dataTable("tools_app")
 
         #create the tabs
