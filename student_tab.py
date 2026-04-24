@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QTableView,
     QHeaderView
 )
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from table_model import tableModel
 
 
@@ -60,20 +61,35 @@ class myStudents(QWidget):
         changeStudentsLayout.addWidget(delBtn)
 
         #search bar
-        searchBar = QLineEdit()
-        searchBar.setPlaceholderText("Search for student ID or Name")
+        self.searchBar = QLineEdit()
+        self.searchBar.setPlaceholderText("Search for student ID or Name")
 
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
-        self.mainLayout.addWidget(searchBar)
+        self.mainLayout.addWidget(self.searchBar)
 
         self.studModel = model
         #create the model for the data
 
         self.studentsData = QTableView()
         #create a view to look at the model
-        self.studentsData.setModel(self.studModel)
         self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        self.proxy = QSortFilterProxyModel()
+        self.proxy.setSourceModel(self.studModel)
+
+        location_column = self.studModel.fieldIndex("id")
+        #where to search
+        self.proxy.setFilterKeyColumn(location_column)
+        # filter by the location column in the SQLite-backed model
+        
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
+        #make filter case insensitive
+        self.searchBar.textChanged.connect(lambda: self.search())
+        #upon search bar being typed, activate search  
+
+        self.studentsData.setModel(self.proxy)
+        #give proxy to view
         
         #layout for bottom table
         studentsDataLayout = QVBoxLayout()
@@ -113,6 +129,11 @@ class myStudents(QWidget):
 
         if index.isValid():
             self.studModel.del_row(index.row())
+    
+    def search(self):
+    #search function
+        self.proxy.setFilterFixedString(self.searchBar.text())
+        #just grabs text in search bar, searches for it
     
 if __name__ == '__main__':
 

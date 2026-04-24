@@ -106,19 +106,23 @@ class myTools(QWidget):
         #give the proxy model a source
         
         location_column = self.model.fieldIndex("name")
+        #where to search
         self.proxy.setFilterKeyColumn(location_column)
         # filter by the location column in the SQLite-backed model
         
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.proxy.setFilterFixedString(self.searchBar.text())
-        print(self.searchBar.text())
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
+        #make filter case insensitive
         self.searchBar.textChanged.connect(lambda: self.search())
+        #upon search bar being typed, activate search  
 
-        self.studentsData.setModel(self.model)
+        self.studentsData.setModel(self.proxy)
+        #give proxy to view
 
         studentsDataLayout.addWidget(self.studentsData)
+        #add view to layout
 
         self.mainLayout.addLayout(studentsDataLayout)
+        #add layout to main layout
 
     def add_Tool(self):
         newToolData = []
@@ -151,7 +155,9 @@ class myTools(QWidget):
             entryItem.setPlaceholderText(text)
 
     def search(self):
+    #search function
         self.proxy.setFilterFixedString(self.searchBar.text())
+        #just grabs text in search bar, searches for it
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
