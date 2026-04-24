@@ -18,7 +18,8 @@ TABLE_SPECS = {
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 tool TEXT DEFAULT 'None',
-                location TEXT DEFAULT 'None'
+                location TEXT DEFAULT 'None',
+                certs TEXT DEFAULT 'None'
             )
         """,
         "headers": ["ID", "Name", "Tools", "Location"],
@@ -36,50 +37,48 @@ TABLE_SPECS = {
         "aliases": {"sampleData.csv", "tools_app"},
         "schema": """
             CREATE TABLE IF NOT EXISTS tools_app (
-                name TEXT,
+                name TEXT PRIMARY KEY,
                 quantity INTEGER,
                 condition TEXT,
-                tag TEXT,
-                table_name TEXT
+                tag TEXT
             )
         """,
         "headers": ["Tool", "Quantity", "Condition", "Tag", "Table"],
-        "editable_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "editable_columns": ["name", "quantity", "condition", "tag"],
         "seed_file": BASE_DIR / "sampleData.csv",
-        "seed_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "seed_columns": ["name", "quantity", "condition", "tag"],
         "seed_transform": lambda row: (
             row.get("Tool", "").strip(),
             row.get("Quantity", "").strip(),
             row.get("Condition", "").strip(),
-            row.get("Tag", "").strip(),
-            row.get("Table", "").strip(),
+            row.get("Tag", "").strip()
         ),
     },
-    "reports_app": {
-        "aliases": {"sampleReports.csv", "reports_app"},
-        "schema": """
-            CREATE TABLE IF NOT EXISTS reports_app (
-                name TEXT,
-                time TEXT,
-                machinery TEXT,
-                table_name TEXT,
-                tools TEXT,
-                notes TEXT
-            )
-        """,
-        "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
-        "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
-        "seed_file": BASE_DIR / "sampleReports.csv",
-        "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
-        "seed_transform": lambda row: (
-            row.get("Name: ", "").strip(),
-            row.get("Time:", "").strip(),
-            row.get("Machinery:", "").strip(),
-            row.get("Table:", "").strip(),
-            row.get("Tools:", "").strip(),
-            row.get("Notes:", "").strip(),
-        ),
-    },
+    # "reports_app": {
+    #     "aliases": {"sampleReports.csv", "reports_app"},
+    #     "schema": """
+    #         CREATE TABLE IF NOT EXISTS reports_app (
+    #             name TEXT,
+    #             time TEXT,
+    #             machinery TEXT,
+    #             table_name TEXT,
+    #             tools TEXT,
+    #             notes TEXT
+    #         )
+    #     """,
+    #     "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
+    #     "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+    #     "seed_file": BASE_DIR / "sampleReports.csv",
+    #     "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+    #     "seed_transform": lambda row: (
+    #         row.get("Name: ", "").strip(),
+    #         row.get("Time:", "").strip(),
+    #         row.get("Machinery:", "").strip(),
+    #         row.get("Table:", "").strip(),
+    #         row.get("Tools:", "").strip(),
+    #         row.get("Notes:", "").strip(),
+    #     ),
+    # },
     "spaces_app": {
         "aliases": {"sampleTables.csv", "spaces_app"},
         "schema": """
@@ -100,6 +99,23 @@ TABLE_SPECS = {
             row.get("Tool", "").strip(),
             "None",
         ),
+    },
+    "notes_app": {
+        "aliases": {"notesApp.csv", "notes_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS notes_app (
+                note_id INTEGER PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                tool_id INTEGER DEFAULT 'None',
+                location TEXT DEFAULT 'None',
+                note_text TEXT DEFAULT 'None',
+                timestamp TEXT DEFAULT 'None',
+                temp INTEGER DEFAULT 1
+            )
+        """,
+        "headers": ["Note ID", "Student ID", "Tool ID", "Location", "Note"],
+        "editable_columns": ["student_id", "tool_id", "location", "note_text"],
+        "seed_file": BASE_DIR / "notesApp.csv",
     },
 }
 
