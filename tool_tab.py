@@ -1,6 +1,7 @@
 #dashboard
 
 import sys
+from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from PyQt6.QtWidgets import (
     QApplication, 
     QWidget, 
@@ -33,24 +34,13 @@ class myTools(QWidget):
         self.model = model
         #create the model for the data
 
-        self.studentsData = QTableView()
-        #create the view to look at the model
-
-        #format output
-        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        #select only one at a time
-        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        #contents will stretch to fit window
-
-        self.studentsData.setModel(self.model)
-
         #layout for top thing
         self.create_top_layout()
 
         #search bar
-        searchBar = QLineEdit()
-        searchBar.setPlaceholderText("Search for student ID or Name")
-        self.mainLayout.addWidget(searchBar)
+        self.searchBar = QLineEdit()
+        self.searchBar.setPlaceholderText("Search for tool")
+        self.mainLayout.addWidget(self.searchBar)
 
         #layout for bottom table
         self.create_bot_layout()
@@ -79,9 +69,8 @@ class myTools(QWidget):
         self.quanEntry = QLineEdit()
         self.condEntry = QLineEdit()
         self.tagEntry = QLineEdit()
-        self.locatEntry = QLineEdit()
 
-        self.entries = [self.nameEntry, self.quanEntry, self.condEntry, self.tagEntry, self.locatEntry]
+        self.entries = [self.nameEntry, self.quanEntry, self.condEntry, self.tagEntry]
         
         self.reset_entry_text()
 
@@ -102,9 +91,38 @@ class myTools(QWidget):
     
         studentsDataLayout = QVBoxLayout()
 
+        self.studentsData = QTableView()
+        #create the view to look at the model
+
+        #format output
+        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        #select only one at a time
+        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        #contents will stretch to fit window
+
+        self.proxy = QSortFilterProxyModel()
+
+        self.proxy.setSourceModel(self.model)
+        #give the proxy model a source
+        
+        location_column = self.model.fieldIndex("name")
+        #where to search
+        self.proxy.setFilterKeyColumn(location_column)
+        # filter by the location column in the SQLite-backed model
+        
+        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
+        #make filter case insensitive
+        self.searchBar.textChanged.connect(lambda: self.search())
+        #upon search bar being typed, activate search  
+
+        self.studentsData.setModel(self.proxy)
+        #give proxy to view
+
         studentsDataLayout.addWidget(self.studentsData)
+        #add view to layout
 
         self.mainLayout.addLayout(studentsDataLayout)
+        #add layout to main layout
 
     def add_Tool(self):
         newToolData = []
@@ -130,11 +148,16 @@ class myTools(QWidget):
 
     def reset_entry_text(self):
     #helper function to reset the text entries       
-        textBoxes = ["Tool Name", "Quantity", "Tool Condition", "High or Low Power", "Location"]
+        textBoxes = ["Tool Name", "Quantity", "Tool Condition", "High or Low Power"]
         #the text to reset them to
 
         for entryItem, text in zip(self.entries, textBoxes):
             entryItem.setPlaceholderText(text)
+
+    def search(self):
+    #search function
+        self.proxy.setFilterFixedString(self.searchBar.text())
+        #just grabs text in search bar, searches for it
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
