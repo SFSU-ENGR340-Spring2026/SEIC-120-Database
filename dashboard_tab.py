@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
 from table_model import tableModel
 import csv, datetime
 
@@ -284,7 +285,19 @@ class myDashboard(QWidget):
     #function to check a student in
         #grabs id and table section (section not necessary, defaults to In?)
         #changes location
-        return
+
+        studID = self.idEntry
+        space = self.spaceName
+        print(f"studID: {studID.text()}, space: {space.text()}")
+        searchColumn = "location"
+        #find the student, and the students' tool to change
+
+        # cursor = self.studModel.db  #text of students tool list
+        # cursor.exec(f"SET location = {space.text()} WHERE id = {int(studID.text())}")
+        # cursor.commit()
+
+        rowIndex = self.studModel.indexInQuery(studID.text())
+        self.studModel.change_value(rowIndex.row(), searchColumn, space.text())
 
     def checkOut(self):
     #function to check a student out
