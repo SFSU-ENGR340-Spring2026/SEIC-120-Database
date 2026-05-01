@@ -159,12 +159,10 @@ class myDashboard(QWidget):
         addNote.setText("Add Note")
         headerLayout.addWidget(addNote)
 
-        addNote.clicked.connect(self.add_note)
-
-        layout.addLayout(headerLayout)
-
         table = QTableView()
         #create table view
+
+        layout.addLayout(headerLayout)
 
         self.noteProxy = QSortFilterProxyModel()
         #create a proxy view, needs to be accessible so i can futz with it later
@@ -177,9 +175,15 @@ class myDashboard(QWidget):
 
         table.setModel(self.noteProxy)
         #set model to view
+        table.setColumnHidden(0, True)
+        table.setColumnHidden(6, True)
         layout.addWidget(table)
         #add view to layout
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        # table.resizeRowsToContents()
+        
+        addNote.clicked.connect(lambda:self.add_note(table))
         
         self.mainLayout.addLayout(layout)
 
@@ -259,21 +263,17 @@ class myDashboard(QWidget):
         
         if toolList == "":
         #if first time
-            currTool = f"+{str(toolRow.data())}"
+            currTool = f"{str(toolRow.data())}"
             self.studModel.change_value(studRow.row(), searchColumn, currTool) 
             #add tool with + at start
         else:
-            toolList = f"{toolList}\n+{currTool}"
+            toolList = f"{toolList}\n{currTool}"
             #add existing list and new tool
 
             self.studModel.change_value(studRow.row(), searchColumn, toolList) 
             #change students tool list with new string
             table.resizeRowsToContents()
-            #change row height
 
-        #check for 0 tools
-        #decrement tool quantity
-        #generate note
     
     def returnTool(self, table):
     #given a clicked on tool, remove from the student, increment quantity
@@ -294,16 +294,28 @@ class myDashboard(QWidget):
         #makes note of day/time and that they left
         return
     
-    def add_note(self):
-        reporting = makeNote_dialog(self)
+    def add_note(self, view):
+        self.reporting = makeNote_dialog(self)
+        #create the report box
 
-        if reporting.exec():
-            report = reporting.getConfirmReport()        # returns if report has been made
+        if self.reporting.exec():
+        #if the thing is executing
+
+            # noteid, studid, toolid, location, note, time
+            report = self.reporting.getConfirmReport()        # returns if report has been made
             print(report)
-
 
             # confirm/deny pop up window
             if report == "Report Created.":
+                text = self.reporting.return_text()
+                #grab the current text in all entries
+                print(f"text: {text}")
+                text.append(0)              #if temp or not, 0 means permanents
+                self.noteModel.add_row(text)
+                #add it to the model
+
+                view.resizeRowsToContents()
+
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText("Note Created.")
@@ -315,6 +327,11 @@ class myDashboard(QWidget):
                 msg.setText("Please Enter Information.")
                 msg.setWindowTitle("Denied")
                 msg.exec()
+    
+    def auto_report(self, value, location):
+        #generates auto report, for assigning tools, students
+        ct = datetime.datetime() 
+        return
 
 class myFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, excluded_values=None, column=1, parent=None):
@@ -342,19 +359,26 @@ class makeNote_dialog(QDialog):
 
 
         # Entery Text 
+        self.entryText = []
 
         # top layout
         self.stuIDLine = QLineEdit()
         self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+        self.entryText.append(self.stuIDLine)
 
         self.toolIDLine = QLineEdit()
         self.toolIDLine.setPlaceholderText("Enter Tool ID")
+        self.entryText.append(self.toolIDLine)
 
         self.locationLine = QLineEdit()
         self.locationLine.setPlaceholderText("Enter Location")
+        self.entryText.append(self.locationLine)
 
         self.timeLine = QLineEdit()
         self.timeLine.setPlaceholderText("YYYY-MM-DD-HH:MM")
+
+        ct = datetime.datetime.now()
+        self.timeLine.setText(str(ct)[:-7])
         
         topLayout.addWidget(self.stuIDLine)
         topLayout.addWidget(self.toolIDLine)
@@ -365,6 +389,8 @@ class makeNote_dialog(QDialog):
         self.stuReport = QTextEdit()
         self.stuReport.setPlaceholderText("Enter Student Report")
         layout.addWidget(self.stuReport, 1)
+        self.entryText.append(self.stuReport)
+        self.entryText.append(self.timeLine)        #timeline must be here for the table
 
         # Buttons
         btnLayout = QHBoxLayout()
@@ -381,7 +407,7 @@ class makeNote_dialog(QDialog):
         layout.addLayout(btnLayout)
 
     def getConfirmReport(self):
-        if self.stuIDLine.int().strip() and self.stuReport.toPlainText().strip():
+        if self.stuIDLine.text().strip() and self.stuReport.toPlainText().strip():
             return("Report Created.")
 
         else:
@@ -389,6 +415,21 @@ class makeNote_dialog(QDialog):
         
     def warning(self):
             pass
+    
+    def return_text(self):
+        text = []
+
+        # text.append(1)      #note id?
+
+        for entry in self.entryText:
+            if isinstance(entry, QTextEdit):
+                text.append(entry.toPlainText())
+                continue
+            
+            text.append(entry.text())
+        
+        return text
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
