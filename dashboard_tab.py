@@ -146,6 +146,7 @@ class myDashboard(QWidget):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
         layout = QVBoxLayout()
+        
 
         #header section of the layout
         headerLayout = QHBoxLayout()
@@ -164,6 +165,7 @@ class myDashboard(QWidget):
         layout.addLayout(headerLayout)
 
         table = QTableView()
+        table.resizeRowsToContents()
         #create table view
 
         self.noteProxy = QSortFilterProxyModel()
