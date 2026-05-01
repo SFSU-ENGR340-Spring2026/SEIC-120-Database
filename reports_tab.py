@@ -397,7 +397,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # create the main window
-    dataModel = tableModel("students_app")
+    dataModel = tableModel("notes_app")
     window = myReports(dataModel)
 
     # start the event loop
