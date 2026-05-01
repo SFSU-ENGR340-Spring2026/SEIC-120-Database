@@ -22,15 +22,16 @@ TABLE_SPECS = {
                 certs TEXT DEFAULT 'None'
             )
         """,
-        "headers": ["ID", "Name", "Tools", "Location"],
-        "editable_columns": ["id", "name", "tool", "location"],
+        "headers": ["ID", "Name", "Tools", "Location", "Certifications"],
+        "editable_columns": ["id", "name", "tool", "location", "certs"],
         "seed_file": BASE_DIR / "sampleStudents.csv",
-        "seed_columns": ["id", "name", "tool", "location"],
+        "seed_columns": ["id", "name", "tool", "location", "certs"],
         "seed_transform": lambda row: (
             row.get("ID", "").strip(),
             row.get("Name", "").strip(),
             row.get("Tools", "").strip(),
             row.get("Location", "").strip(),
+            row.get("Certifications", "").strip(),
         ),
     },
     "tools_app": {
