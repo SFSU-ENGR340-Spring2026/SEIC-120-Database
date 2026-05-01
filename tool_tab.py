@@ -17,7 +17,8 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox,
     QHeaderView,
-    QTableView
+    QTableView,
+    QComboBox
 )
 from table_model import tableModel
 
@@ -68,9 +69,17 @@ class myTools(QWidget):
         self.nameEntry = QLineEdit()
         self.quanEntry = QLineEdit()
         self.condEntry = QLineEdit()
-        self.tagEntry = QLineEdit()
+        self.entries = [self.nameEntry, self.quanEntry, self.condEntry]
 
-        self.entries = [self.nameEntry, self.quanEntry, self.condEntry, self.tagEntry]
+
+        # high power low power tags
+        # self.tagBox = QComboBox()
+        # self.tagBox.addItem("Tool Power Level")
+        # self.tagBox.addItem("⚠️ HIGH Power")
+        # self.tagBox.addItem("🟢 LOW Power")
+        # item = self.tagBox.model().item(0)
+        # item.setEnabled(False) 
+
         
         self.reset_entry_text()
 
@@ -81,8 +90,10 @@ class myTools(QWidget):
         for entry in self.entries:
             changeStudentsLayout.addWidget(entry)
 
+        #changeStudentsLayout.addWidget(self.tagBox)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
+       
 
         self.mainLayout.addLayout(changeStudentsLayout)
 
@@ -148,7 +159,7 @@ class myTools(QWidget):
 
     def reset_entry_text(self):
     #helper function to reset the text entries       
-        textBoxes = ["Tool Name", "Quantity", "Tool Condition", "High or Low Power"]
+        textBoxes = ["Tool Name", "Quantity", "Tool Condition"]
         #the text to reset them to
 
         for entryItem, text in zip(self.entries, textBoxes):
