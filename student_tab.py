@@ -3,6 +3,7 @@
 #display the table
 
 import sys
+import os
 from PyQt6.QtWidgets import (
     QApplication, 
     QWidget, 
@@ -41,7 +42,7 @@ class myStudents(QWidget):
 
         #buttons
         addBtn = QPushButton()
-        addBtn.setText("Add Student")
+        addBtn.setText("Confirm")
         addBtn.clicked.connect(lambda:self.add_student())
 
         delBtn = QPushButton()
@@ -60,9 +61,9 @@ class myStudents(QWidget):
         # Drop down menu for Student Certifications
         self.certBox = QComboBox()
         # icons
-        printIcon = QIcon('3D_print_icon')
-        lzrIcon = QIcon('lzr_icon')
-        toolIcon = QIcon('tool_Icon')
+        printIcon = QIcon(self.get_path("3D_print_icon.png"))
+        lzrIcon = QIcon(self.get_path("lzr_icon.png"))
+        toolIcon = QIcon(self.get_path("tool_Icon.png"))
 
         self.certBox.addItem("Student Certifications")
         self.certBox.addItem(toolIcon, "Hand Tool")
@@ -128,6 +129,10 @@ class myStudents(QWidget):
         # show the window
         self.show()
 
+    def get_path(self, filename):
+        basedir = os.path.dirname(__file__)         # gets the absolute path of the .png's for the icons in certBox
+        return os.path.join(basedir, filename)
+
     def add_student(self):
         newToolData = []
 
@@ -135,8 +140,27 @@ class myStudents(QWidget):
             newToolData.append(entry.text())
             #add all entries to a list
         
-        newToolData.append("None")
-        newToolData.append("None")
+        newToolData.append("None")                 # tools column
+        newToolData.append("None")                 # location column
+
+
+        # Student cert selection
+        if self.certBox.currentIndex() != -1:                       # if something is selected                 
+            index = self.certBox.currentIndex()                     # save the index 
+            if index == 1:                                      
+                toolIcon = QIcon(self.get_path("tool_Icon.png"))            
+                newToolData.append(toolIcon)                        # if tools is selected, add the tool icon
+            elif index == 2:
+                lzrIcon = QIcon(self.get_path("lzr_icon.png"))
+                newToolData.append(lzrIcon)                         # if laser cutter/engravr is selected, add the lzr icon
+            elif index == 3:
+                printIcon = QIcon(self.get_path("3D_print_icon.png"))
+                newToolData.append(printIcon)                       # if the 3D print icon is selected, add the 3D print icon
+            else:
+                newToolData.append("❌")                       # if none/nothing is selected, add None
+
+
+
         #needs 4 entries to enter into db, default to none for new student
         
         self.studModel.add_row(newToolData)
