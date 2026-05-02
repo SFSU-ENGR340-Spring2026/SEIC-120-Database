@@ -61,14 +61,14 @@ class myStudents(QWidget):
         # Drop down menu for Student Certifications
         self.certBox = QComboBox()
         # icons
-        printIcon = QIcon(self.get_path("3D_print_icon.png"))
-        lzrIcon = QIcon(self.get_path("lzr_icon.png"))
-        toolIcon = QIcon(self.get_path("tool_Icon.png"))
+        self.printIcon = QIcon(self.get_path("3D_print_icon.png"))
+        self.lzrIcon = QIcon(self.get_path("lzr_icon.png"))
+        self.toolIcon = QIcon(self.get_path("tool_Icon.png"))
 
         self.certBox.addItem("Student Certifications")
-        self.certBox.addItem(toolIcon, "Hand Tool")
-        self.certBox.addItem(lzrIcon, "Laser Cutter/Engraver")
-        self.certBox.addItem(printIcon, '3D Printer')
+        self.certBox.addItem(self.toolIcon, "Hand Tool")
+        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
+        self.certBox.addItem(self.printIcon, '3D Printer')
         self.certBox.addItem("❌ None")
 
         # cant select "Student Certifications" as an option, acts more as a title for drop down
@@ -148,18 +148,18 @@ class myStudents(QWidget):
         if self.certBox.currentIndex() != -1:                       # if something is selected                 
             index = self.certBox.currentIndex()                     # save the index 
             if index == 1:                                      
-                toolIcon = QIcon(self.get_path("tool_Icon.png"))            
-                newToolData.append(toolIcon)                        # if tools is selected, add the tool icon
+                newToolData.append("🛠️")                        # if tools is selected, add the tool icon
+                print("tool")
             elif index == 2:
-                lzrIcon = QIcon(self.get_path("lzr_icon.png"))
-                newToolData.append(lzrIcon)                         # if laser cutter/engravr is selected, add the lzr icon
+                newToolData.append("❇️Laz")                         # if laser cutter/engravr is selected, add the lzr icon
+                print("lzr")
             elif index == 3:
-                printIcon = QIcon(self.get_path("3D_print_icon.png"))
-                newToolData.append(printIcon)                       # if the 3D print icon is selected, add the 3D print icon
+                newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
+                print("print")
             else:
-                newToolData.append("❌")                       # if none/nothing is selected, add None
+                newToolData.append("❌")                           # if none/nothing is selected, add None
 
-
+           
 
         #needs 4 entries to enter into db, default to none for new student
         

@@ -1,7 +1,9 @@
 #dashboard
 
 import sys
+import os
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication, 
     QWidget, 
@@ -72,13 +74,23 @@ class myTools(QWidget):
         self.entries = [self.nameEntry, self.quanEntry, self.condEntry]
 
 
-        # high power low power tags
-        # self.tagBox = QComboBox()
-        # self.tagBox.addItem("Tool Power Level")
-        # self.tagBox.addItem("⚠️ HIGH Power")
-        # self.tagBox.addItem("🟢 LOW Power")
-        # item = self.tagBox.model().item(0)
-        # item.setEnabled(False) 
+      
+        # Drop down menu for Student Certifications
+        self.certBox = QComboBox()
+        # icons
+        self.printIcon = QIcon(self.get_path("3D_print_icon.png"))
+        self.lzrIcon = QIcon(self.get_path("lzr_icon.png"))
+        self.toolIcon = QIcon(self.get_path("tool_Icon.png"))
+
+        self.certBox.addItem("Student Certifications")
+        self.certBox.addItem(self.toolIcon, "Hand Tool")
+        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
+        self.certBox.addItem(self.printIcon, '3D Printer')
+        self.certBox.addItem("❌ None")
+
+        # cant select "Student Certifications" as an option, acts more as a title for drop down
+        item = self.certBox.model().item(0)
+        item.setEnabled(False) 
 
         
         self.reset_entry_text()
@@ -90,7 +102,7 @@ class myTools(QWidget):
         for entry in self.entries:
             changeStudentsLayout.addWidget(entry)
 
-        #changeStudentsLayout.addWidget(self.tagBox)
+        changeStudentsLayout.addWidget(self.certBox)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
        
@@ -144,6 +156,21 @@ class myTools(QWidget):
 
         self.model.add_row(newToolData)
         #add list to table
+
+           # Student cert selection
+        if self.certBox.currentIndex() != -1:                       # if something is selected                 
+            index = self.certBox.currentIndex()                     # save the index 
+            if index == 1:                                      
+                newToolData.append("🛠️")                        # if tools is selected, add the tool icon
+                print("tool")
+            elif index == 2:
+                newToolData.append("❇️Lazer")                         # if laser cutter/engravr is selected, add the lzr icon
+                print("lzr")
+            elif index == 3:
+                newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
+                print("print")
+            else:
+                newToolData.append("❌")                           # if none/nothing is selected, add None
     
     def remove_tool(self):
     #remove a single selected row from the db
@@ -169,6 +196,14 @@ class myTools(QWidget):
     #search function
         self.proxy.setFilterFixedString(self.searchBar.text())
         #just grabs text in search bar, searches for it
+
+
+    def get_path(self, filename):
+        basedir = os.path.dirname(__file__)         # gets the absolute path of the .png's for the icons in certBox
+        return os.path.join(basedir, filename)
+    
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
