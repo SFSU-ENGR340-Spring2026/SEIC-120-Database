@@ -39,20 +39,20 @@ TABLE_SPECS = {
         "schema": """
             CREATE TABLE IF NOT EXISTS tools_app (
                 name TEXT PRIMARY KEY,
-                quantity INTEGER,
-                condition TEXT,
-                tag TEXT
+                current_quantity INTEGER,
+                max_quantity INTEGER,
+                certification TEXT
             )
         """,
-        "headers": ["Tool", "Quantity", "Condition", "Tag", "Table"],
-        "editable_columns": ["name", "quantity", "condition", "tag"],
+        "headers": ["Tool", "Available Quantity", "Max Quantity", "Certification"],
+        "editable_columns": ["name", "current_quantity", "max_quantity", "certification"],
         "seed_file": BASE_DIR / "sampleData.csv",
-        "seed_columns": ["name", "quantity", "condition", "tag"],
+        "seed_columns": ["name", "current_quantity", "max_quantity", "certification"],
         "seed_transform": lambda row: (
             row.get("Tool", "").strip(),
-            row.get("Quantity", "").strip(),
-            row.get("Condition", "").strip(),
-            row.get("Tag", "").strip()
+            row.get("Available Quantity", "").strip(),
+            row.get("Max Quantity", "").strip(),
+            row.get("Certification", "").strip()
         ),
     },
     # "reports_app": {
