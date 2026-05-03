@@ -9,16 +9,14 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, 
     QPushButton,
     QLineEdit,
-    QTableWidget,
-    QTableWidgetItem,
-    QMainWindow,
-    QAbstractItemView,
     QMessageBox,
     QGroupBox,
     QTableView,
     QHeaderView,
     QDialog,
-    QTextEdit
+    QTextEdit,
+    QListWidget, QListWidgetItem,
+
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -116,8 +114,8 @@ class myDashboard(QWidget):
         toolOut = QPushButton()
         toolIn.setText("Give Tool")
         toolOut.setText("Return Tool")
-        toolIn.clicked.connect(lambda:self.assignTool(self.studView))
-        toolOut.clicked.connect(lambda:self.returnTool(self.studView))
+        toolIn.clicked.connect(lambda:self.assign_tool(self.studView, self.studModel))
+        toolOut.clicked.connect(lambda:self.return_tool(self.studView, self.studModel))
                 
         # checkInLayout.addWidget(toolName)
         topLay.addWidget(toolIn)
@@ -127,16 +125,17 @@ class myDashboard(QWidget):
         #create view
 
         location_column = model.fieldIndex("location")
-        proxy = myFilterProxyModel(excluded_values=["none", "None"], column=location_column)
+        self.studProxy = myFilterProxyModel(excluded_values=["none", "None"], column=location_column)
         #create proxy
-        proxy.setSourceModel(model)
+        self.studProxy.setSourceModel(model)
         #set model
-        self.studView.setModel(proxy)
+        self.studView.setModel(self.studProxy)
         #attach view to model
 
         layout.addLayout(topLay)
         layout.addWidget(self.studView)
-        self.studView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch) 
+        self.studView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.studView.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents) 
 
         #upon clicking on the some student, the table will load in
         self.studView.clicked.connect(lambda:self.showReports(self.studView))   
@@ -162,7 +161,8 @@ class myDashboard(QWidget):
         headerLayout.addWidget(addNote)
 
         table = QTableView()
-        table.resizeRowsToContents()
+        table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         #create table view
 
         layout.addLayout(headerLayout)
@@ -173,16 +173,19 @@ class myDashboard(QWidget):
         #set proxy's source
         self.noteProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         #change filters case sensitivity
-        self.noteProxy.setFilterKeyColumn(0)
+        self.noteProxy.setFilterKeyColumn(self.noteModel.fieldIndex("student_id"))
         #searches names (should be id), for the correct one to display
 
         table.setModel(self.noteProxy)
         #set model to view
-        table.setColumnHidden(0, True)
-        table.setColumnHidden(6, True)
+
+        table.setColumnHidden(self.noteModel.fieldIndex("note_id"), True)
+        #note id
+        table.setColumnHidden(self.noteModel.fieldIndex("temp"), True)
+        #temp or not
+
         layout.addWidget(table)
         #add view to layout
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         # table.resizeRowsToContents()
         
@@ -245,43 +248,103 @@ class myDashboard(QWidget):
 
         self.currentTool = currentToolIndex.data()
 
-    def assignTool(self, table):
-    #given table of currently in students, give them tool thats currently clicked
-        #grab the row and name of clicked tool
-        #if there are 0 tools, error msg
-        #add it to the tool section of the clicked on student
-            #if theres already something, add a comma
-        #decrement quantity
-        #create note that they borrowed it
- 
-        toolRow = self.toolView.currentIndex()
-        #find the tool
+    def assign_tool(self, table, model):
+    #given table of currently in students, and a model to modify, give them tool thats currently clicked
+        
+        source_row, record = self.get_source_row(table, model, self.studProxy)
+        #find the original row index, and the values in that row
+        
+        tool = record.value("tool")
+        #get the value at this specified field
 
-        studRow = self.studView.currentIndex()
+        # print(f"current tool: {tool}, proxy row: {proxy_index.row()}, source row: {source_index.row()}")
+        
+        toolRow = self.toolView.currentIndex()
+        #and the tool to be added
+
         searchColumn = "tool"
         #find the student, and the students' tool to change
 
-        toolList = str(studRow.data())  #text of students tool list
+        toolList = str(tool)  #text of students tool list
         currTool = str(toolRow.data())  #text of tool to be added
+        # print(f"tool to add: {currTool}")
         
         if toolList == "":
         #if first time
-            currTool = f"{str(toolRow.data())}"
-            self.studModel.change_value(studRow.row(), searchColumn, currTool) 
-            #add tool with + at start
+            # print(f"test {currTool}")
+            model.change_value(source_row, searchColumn, currTool) 
+            #add tool to blank string
         else:
-            toolList = f"{toolList}\n{currTool}"
+            toolList = f"{tool}\n{currTool}"
+            # print(f"not empty")
             #add existing list and new tool
-
-            self.studModel.change_value(studRow.row(), searchColumn, toolList) 
+            model.change_value(source_row, searchColumn, toolList) 
             #change students tool list with new string
-            table.resizeRowsToContents()
+        
+        # table.resizeRowsToContents()
+
+        #decrement quantity
+        #make note
+        #therese you never charge yo shit
 
     
-    def returnTool(self, table):
-    #given a clicked on tool, remove from the student, increment quantity
-    #make note
-        return  
+    def return_tool(self, view, model):
+    #given a view and a model of students, get the checked out tools, and give a list, 
+    # increment quantity, make note
+        #find the students checked out tools
+        #split the list into data
+        #create a checkbox from the data
+        #for each check, remove from list
+        #increment quantity
+        #make note
+
+        col = model.fieldIndex("tool")
+        #find the students' tools to be returned
+
+        row, record = self.get_source_row(view, model, self.studProxy)
+
+
+        raw = record.value("tool") or ""
+        items = [line.strip() for line in raw.split("\n") if line.strip()]
+        #get the raw data, and turn into list
+
+        dialog = QDialog()
+        layout = QVBoxLayout(dialog)
+        list_widget = QListWidget()
+        dialog.setWindowTitle("Tool Return Checklist")
+        #setup for the dialog box
+
+        for item in items:
+            lw_item = QListWidgetItem(item)
+            lw_item.setFlags(lw_item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            lw_item.setCheckState(Qt.CheckState.Unchecked)
+            list_widget.addItem(lw_item)
+
+        layout.addWidget(list_widget)
+
+        btn = QPushButton("Check Back Tools")
+        layout.addWidget(btn)
+
+        dialog.setLayout(layout)
+
+        def remove_checked():
+            remaining = []
+            for i in range(list_widget.count()):
+                item = list_widget.item(i)
+                if item.checkState() == Qt.CheckState.Unchecked:
+                    remaining.append(item.text())
+
+            # Join back into newline string
+            new_value = "\n".join(remaining)
+
+            model.setData(model.index(row, col), new_value)
+            model.submitAll()
+            # view.resizeRowsToContents()
+
+            dialog.accept()
+
+        btn.clicked.connect(remove_checked)
+        dialog.exec()
     
     def checkIn(self):
     #function to check a student in
@@ -329,7 +392,7 @@ class myDashboard(QWidget):
                 self.noteModel.add_row(text)
                 #add it to the model
 
-                view.resizeRowsToContents()
+                # view.resizeRowsToContents()
 
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Information)
@@ -347,6 +410,19 @@ class myDashboard(QWidget):
         #generates auto report, for assigning tools, students
         ct = datetime.datetime() 
         return
+    
+    def get_source_row(self, view, model, proxy):
+    #given a view, model, and proxy, find the source row of the current views row
+        proxy_index = view.currentIndex()
+        #find the index of the view
+        source_index = proxy.mapToSource(proxy_index)
+        #find index of source model
+        source_row = source_index.row()
+        #use that to find the row at source index
+        record = model.record(source_index.row())
+        #get all the data at that row
+
+        return source_row, record
 
 class myFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, excluded_values=None, column=1, parent=None):
