@@ -198,7 +198,7 @@ class myDashboard(QWidget):
     #students checked in, tools available, notes
         layout = QVBoxLayout()
         self.toolView = QTableView()
-        location_column = model.fieldIndex("quantity")
+        location_column = model.fieldIndex("current_quantity")
 
         #section for entering data
         header = QLineEdit()
@@ -207,7 +207,7 @@ class myDashboard(QWidget):
         layout.addWidget(header)
 
         #create filter model, based on original model
-        self.toolProxy = myFilterProxyModel(excluded_values=[0], column=location_column)
+        self.toolProxy = myFilterProxyModel(column=location_column)
         self.toolProxy.setSourceModel(model)
 
         self.toolView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -219,7 +219,7 @@ class myDashboard(QWidget):
         self.toolView.clicked.connect(lambda:self.getTool(self.toolView))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        #look for tools with not 0 quantity, i.e. avaiable
+        #show all tools, including those currently at 0 available
 
         self.toolView.setModel(self.toolProxy)
         #give the proxy to the view     
@@ -250,7 +250,9 @@ class myDashboard(QWidget):
 
     def assign_tool(self, table, model):
     #given table of currently in students, and a model to modify, give them tool thats currently clicked
-        
+        if not table.currentIndex().isValid() or not self.toolView.currentIndex().isValid():
+            return
+
         source_row, record = self.get_source_row(table, model, self.studProxy)
         #find the original row index, and the values in that row
         
@@ -265,9 +267,19 @@ class myDashboard(QWidget):
         searchColumn = "tool"
         #find the student, and the students' tool to change
 
-        toolList = str(tool)  #text of students tool list
+        toolList = "" if tool in (None, "", "None") else str(tool)
         currTool = str(toolRow.data())  #text of tool to be added
         # print(f"tool to add: {currTool}")
+
+        tool_inventory_row = self.toolModel.find_row_by_value("name", currTool)
+        if tool_inventory_row < 0:
+            return
+
+        current_quantity = self.toolModel.data(
+            self.toolModel.index(tool_inventory_row, self.toolModel.fieldIndex("current_quantity"))
+        )
+        if int(current_quantity) <= 0:
+            return
         
         if toolList == "":
         #if first time
@@ -281,11 +293,7 @@ class myDashboard(QWidget):
             model.change_value(source_row, searchColumn, toolList) 
             #change students tool list with new string
         
-        # table.resizeRowsToContents()
-
-        #decrement quantity
-        #make note
-        #therese you never charge yo shit
+        self.toolModel.adjust_value(tool_inventory_row, "current_quantity", -1, minimum=0)
 
     
     def return_tool(self, view, model):
@@ -329,17 +337,34 @@ class myDashboard(QWidget):
 
         def remove_checked():
             remaining = []
+            returned_tools = []
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
                 if item.checkState() == Qt.CheckState.Unchecked:
                     remaining.append(item.text())
+                else:
+                    returned_tools.append(item.text())
 
             # Join back into newline string
             new_value = "\n".join(remaining)
 
-            model.setData(model.index(row, col), new_value)
-            model.submitAll()
-            # view.resizeRowsToContents()
+            model.change_value(row, "tool", new_value)
+
+            for tool_name in returned_tools:
+                tool_inventory_row = self.toolModel.find_row_by_value("name", tool_name)
+                if tool_inventory_row < 0:
+                    continue
+
+                max_quantity = self.toolModel.data(
+                    self.toolModel.index(tool_inventory_row, self.toolModel.fieldIndex("max_quantity"))
+                )
+                self.toolModel.adjust_value(
+                    tool_inventory_row,
+                    "current_quantity",
+                    1,
+                    minimum=0,
+                    maximum=int(max_quantity) if max_quantity not in (None, "") else None,
+                )
 
             dialog.accept()
 

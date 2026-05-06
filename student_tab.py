@@ -140,7 +140,7 @@ class myStudents(QWidget):
             newToolData.append(entry.text())
             #add all entries to a list
         
-        newToolData.append("None")                 # tools column
+        newToolData.append("")                     # tools column
         newToolData.append("None")                 # location column
 
 

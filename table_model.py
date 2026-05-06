@@ -1,6 +1,7 @@
 import csv
 import sqlite3
 from pathlib import Path
+import datetime
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
@@ -17,7 +18,7 @@ TABLE_SPECS = {
             CREATE TABLE IF NOT EXISTS students_app (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
-                tool TEXT DEFAULT 'None',
+                tool TEXT DEFAULT '',
                 location TEXT DEFAULT 'None',
                 certs TEXT DEFAULT 'None'
             )
@@ -167,6 +168,10 @@ def initialize_database():
         for table_name, spec in TABLE_SPECS.items():
             connection.execute(spec["schema"])
             _seed_table_if_empty(connection, table_name, spec)
+
+        # Normalize legacy placeholder values in the student tools column.
+        connection.execute("UPDATE students_app SET tool = '' WHERE tool = 'None'")
+        connection.commit()
     finally:
         connection.close()
 
@@ -251,3 +256,40 @@ class tableModel(QSqlTableModel):
     def change_value(self, row, colName, value):
         column_index = self.fieldIndex(colName)
         self.setData(self.index(row, column_index), value)
+
+        if not self.submitAll():
+            self.revertAll()
+            raise RuntimeError(self.lastError().text())
+
+        self.select()
+
+    def find_row_by_value(self, colName, value):
+        column_index = self.fieldIndex(colName)
+        for row in range(self.rowCount()):
+            if str(self.data(self.index(row, column_index))) == str(value):
+                return row
+        return -1
+
+    def adjust_value(self, row, colName, delta, minimum=None, maximum=None):
+        column_index = self.fieldIndex(colName)
+        current_value = self.data(self.index(row, column_index))
+
+        try:
+            new_value = int(current_value) + int(delta)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Column '{colName}' does not contain an integer value.") from exc
+
+        if minimum is not None:
+            new_value = max(minimum, new_value)
+
+        if maximum is not None:
+            new_value = min(maximum, new_value)
+
+        self.setData(self.index(row, column_index), new_value)
+
+        if not self.submitAll():
+            self.revertAll()
+            raise RuntimeError(self.lastError().text())
+
+        self.select()
+        return new_value
