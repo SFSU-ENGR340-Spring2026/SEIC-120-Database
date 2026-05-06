@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
     QTableView,
     QHeaderView,
     QComboBox,
+    QDialog,
 
 )
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -84,12 +85,22 @@ class myStudents(QWidget):
         changeStudentsLayout.addWidget(delBtn)
 
         #search bar
+        searchLayout = QHBoxLayout()               # layout created under changeStedentsLayout
         self.searchBar = QLineEdit()
         self.searchBar.setPlaceholderText("Search for student ID or Name")
 
+        updateBtn = QPushButton()
+        updateBtn.setText("Update Student")
+        updateBtn.clicked.connect(self.openUpdateStu)       # if update button is clicked, open updateStu
+
+        searchLayout.addWidget(self.searchBar)      # add to the searchLayout
+        searchLayout.addWidget(updateBtn)
+
+
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
-        self.mainLayout.addWidget(self.searchBar)
+        self.mainLayout.addLayout(searchLayout)     # add to main layout
+     
 
         self.studModel = model
         #create the model for the data
@@ -134,36 +145,36 @@ class myStudents(QWidget):
         return os.path.join(basedir, filename)
 
     def add_student(self):
-        newToolData = []
+        self.newToolData = []
 
         for entry in self.entries:
-            newToolData.append(entry.text())
+            self.newToolData.append(entry.text())
             #add all entries to a list
         
-        newToolData.append("None")                 # tools column
-        newToolData.append("None")                 # location column
+        self.newToolData.append("None")                 # tools column
+        self.newToolData.append("None")                 # location column
 
 
         # Student cert selection
         if self.certBox.currentIndex() != -1:                       # if something is selected                 
             index = self.certBox.currentIndex()                     # save the index 
             if index == 1:                                      
-                newToolData.append("🛠️")                        # if tools is selected, add the tool icon
+                self.newToolData.append("🛠️")                        # if tools is selected, add the tool icon
                 print("tool")
             elif index == 2:
-                newToolData.append("❇️Laz")                         # if laser cutter/engravr is selected, add the lzr icon
+                self.newToolData.append("❇️")                         # if laser cutter/engravr is selected, add the lzr icon
                 print("lzr")
             elif index == 3:
-                newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
+                self.newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
                 print("print")
             else:
-                newToolData.append("❌")                           # if none/nothing is selected, add None
+                self.newToolData.append("❌")                           # if none/nothing is selected, add None
 
            
 
         #needs 4 entries to enter into db, default to none for new student
         
-        self.studModel.add_row(newToolData)
+        self.studModel.add_row(self.newToolData)
         #add list to table
     
     def rem_student(self):
@@ -180,6 +191,113 @@ class myStudents(QWidget):
     #search function
         self.proxy.setFilterFixedString(self.searchBar.text())
         #just grabs text in search bar, searches for it
+
+    def openUpdateStu(self):            # method to open the update student pop up
+        update = updateStu(self.studentsData, self.studModel)
+        updateMade = update.getCert()       # check to see which cert was clicked in pop up
+
+        # get location of cert cell of selected student
+        # rowLoc = self.studentsData.currentIndex()  # gets current row you are in
+        # colLoc = 
+
+
+
+        # if update is exec
+        # check if there is a current cert in (there will always be a cert in there)
+        # keep in mind: if cert is None, we need to get rid of it 
+        # add that cert to the list 
+
+        if update.exec():                   
+           if updateMade == "tool":         # returned in updateStu method getCert
+             self.newToolData.append("🛠️")
+
+           elif updateMade == "laser":
+             self.newToolData.append("❇️")
+
+           elif updateMade == "printer":
+            self.newToolData.append("🧊")
+
+           else: 
+            self.newToolData.append("❌")
+            
+
+
+
+class updateStu(QDialog):               # pop up for updating a student    
+    def __init__(self, view, model, parent = None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Update Student")
+        self.setFixedSize(300, 250)
+
+        layout = QVBoxLayout(self)
+        topLayout = QHBoxLayout()
+        bottomLayout = QHBoxLayout()
+
+        # text boxes
+        self.stuIDLine = QLineEdit()
+        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+        self.stuIDLine.setText(f"{view.currentIndex().data()}")            # populate id entry box with the selected student ID
+
+        self.stuNameLine = QLineEdit()
+        self.stuNameLine.setPlaceholderText("Enter Student Name") 
+
+        topLayout.addWidget(self.stuIDLine)
+        topLayout.addWidget(self.stuNameLine)
+        layout.addLayout(topLayout)
+
+
+        # student certifications combo box
+        self.certBox = QComboBox()
+        # icons
+        self.printIcon = QIcon('3D_print_icon.png')
+        self.lzrIcon = QIcon('lzr_icon.png')
+        self.toolIcon = QIcon('tool_Icon.png')
+
+        self.certBox.addItem("Student Certifications")
+        self.certBox.addItem(self.toolIcon, "Hand Tool")
+        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
+        self.certBox.addItem(self.printIcon, '3D Printer')
+        self.certBox.addItem("❌ None")
+
+        layout.addWidget(self.certBox)      # add to layout
+
+        
+        # buttons
+        applyBtn = QPushButton("Apply")
+        cancelBtn = QPushButton("Cancel")
+
+        applyBtn.clicked.connect(self.accept)
+        cancelBtn.clicked.connect(self.reject)
+
+        bottomLayout.addWidget(applyBtn)
+        bottomLayout.addWidget(cancelBtn)
+
+        layout.addLayout(bottomLayout)
+
+    def getCert(self):
+   # Student cert selection
+        if self.certBox.currentIndex() != -1:                       # if something is selected                 
+            index = self.certBox.currentIndex()                     # save the index 
+            if index == 1:                                      
+                # return tool to openUpdateStu in myStudets to append cert
+                return("tool")
+                print("+tool")
+            elif index == 2:
+                  # return laser to openUpdateStu in myStudets to append cert
+                return("laser")
+                print("+lzr")
+            elif index == 3:
+                 # return printer to openUpdateStu in myStudets to append cert
+                return("printer")
+                print("+print")
+            else:
+                #newToolData.append("❌")  
+                return("None")
+                print("+none")
+
+
+
     
 if __name__ == '__main__':
 
