@@ -6,7 +6,7 @@ certs = {
     1 : "⚫️⚫️🟢",
     2 : "⚫️🟢⚫️",
     3 : "⚫️🟢🟢",
-    4 : "🟢⚫️⚫️",
+    4 : "🟢⚫️⚫️",           # W truth table, props to you ben - Therese
     5 : "🟢⚫️🟢",
     6 : "🟢🟢⚫️",
     7 : "🟢🟢🟢"
@@ -41,7 +41,7 @@ conn = sqlite3.connect("database.sqlite3")
 cur = conn.cursor()
 
 cur.execute("""
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS students_app (
     id INTEGER PRIMARY KEY,
     name TEXT,
     cert INTEGER

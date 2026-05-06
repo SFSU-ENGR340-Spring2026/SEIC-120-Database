@@ -23,9 +23,11 @@ from table_model import tableModel
 
 import csv
 
-class myTables(QWidget):
+class mySpaces(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        model = model
 
         #create the views
         self.table1 = QTableView()
@@ -39,14 +41,16 @@ class myTables(QWidget):
         self.filters = ["a*", "b*", "c*", "d*", "e*"]
         #list of what filters each table uses
 
+        location_column = model.fieldIndex("location")
+
         for space, filter in zip(self.spaces, self.filters):
             
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
             proxy_model.setSourceModel(model)
             
-            proxy_model.setFilterKeyColumn(3)
-            #column 3 (0 index), checks to filter by student location
+            proxy_model.setFilterKeyColumn(location_column)
+            # filter by the location column in the SQLite-backed model
             
             proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
             proxy_model.setFilterWildcard(filter)
@@ -60,7 +64,7 @@ class myTables(QWidget):
 
         # set the window title
         self.setWindowTitle('Tables')
-        self.setGeometry(100, 100, 640, 420)    #set window size
+        self.setGeometry(100, 100, 1500, 700)    #set window size
 
         #set the layout
         mainLayout = QVBoxLayout(self)
@@ -108,10 +112,10 @@ class myTables(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    model = tableModel("sampleStudents.csv")
+    model = tableModel("spaces_app")
 
     # create the main window
-    window = myTables(model)
+    window = mySpaces(model)
 
     # start the event loop
     sys.exit(app.exec())

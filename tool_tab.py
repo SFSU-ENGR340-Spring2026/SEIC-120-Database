@@ -140,7 +140,7 @@ class myTools(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    dataModel = tableModel("sampleData.csv")
+    dataModel = tableModel("tools_app")
 
     # create the main window
     window = myTools(dataModel)

@@ -42,11 +42,18 @@ class myStudents(QWidget):
         delBtn.setText("Remove")
 
         #place to enter value
-        entryLine = QLineEdit()
-        entryLine.setPlaceholderText("put thing")
+        self.nameLine = QLineEdit()
+        self.nameLine.setPlaceholderText("Enter Student Name")
+
+        self.stuIDLine = QLineEdit()
+        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
+
+  
+        
 
         #add widgets to layout
-        changeStudentsLayout.addWidget(entryLine)
+        changeStudentsLayout.addWidget(self.nameLine)
+        changeStudentsLayout.addWidget(self.stuIDLine)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
 
@@ -79,7 +86,7 @@ class myStudents(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    model = tableModel("sampleStudents.csv")
+    model = tableModel("students_app")
 
     # create the main window
     window = myStudents(model)
