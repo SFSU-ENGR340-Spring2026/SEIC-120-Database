@@ -50,6 +50,7 @@ class myDashboard(QWidget):
         #for spaces
         self.spaceName = QLineEdit()
         self.spaceName.setPlaceholderText("What table section?")
+        
         self.spaceIn = QPushButton()
         self.spaceIn.setText("Assign Table")
             #no need for unassign table, happens when they check out
@@ -59,8 +60,13 @@ class myDashboard(QWidget):
         checkOut = QPushButton()
         checkIn.setText("Check In")
         checkOut.setText("Check Out")
-        checkIn.clicked.connect(lambda:self.checkIn())
-        checkOut.clicked.connect(lambda:self.checkOut())
+
+        studID = self.idEntry.text()            #Id number of student being checked in
+        studLocation = self.spaceName.text()    #location of student to be checked into
+        #breaks func, gives just text at time of running, not the actual location
+
+        checkIn.clicked.connect(lambda:self.checkIn(self.idEntry.text(), self.spaceName.text()))
+        checkOut.clicked.connect(lambda:self.checkOut(self.studView, self.studModel, self.studProxy))
 
         #add them to the layout
         topThingLayout.addWidget(self.idEntry)
@@ -108,18 +114,6 @@ class myDashboard(QWidget):
         #for tools
         # toolName = QLineEdit()
         # toolName.setPlaceholderText("Tool Name")
-        
-        #create the buttons, set their text, 
-        toolIn = QPushButton()
-        toolOut = QPushButton()
-        toolIn.setText("Give Tool")
-        toolOut.setText("Return Tool")
-        toolIn.clicked.connect(lambda:self.assign_tool(self.studView, self.studModel))
-        toolOut.clicked.connect(lambda:self.return_tool(self.studView, self.studModel))
-                
-        # checkInLayout.addWidget(toolName)
-        topLay.addWidget(toolIn)
-        topLay.addWidget(toolOut)
 
         self.studView = QTableView()
         #create view
@@ -197,14 +191,28 @@ class myDashboard(QWidget):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
         layout = QVBoxLayout()
+        topLayout = QHBoxLayout()
+
         self.toolView = QTableView()
         location_column = model.fieldIndex("quantity")
 
         #section for entering data
         header = QLineEdit()
-        header.setText(textBox)
-        header.setReadOnly(True)
-        layout.addWidget(header)
+        header.setPlaceholderText(textBox)
+        # header.setReadOnly(True)
+        topLayout.addWidget(header)
+
+        #create the buttons, set their text, 
+        toolIn = QPushButton()
+        toolOut = QPushButton()
+        toolIn.setText("Give Tool")
+        toolOut.setText("Return Tool")
+        toolIn.clicked.connect(lambda:self.assign_tool(self.studView, self.studModel))
+        toolOut.clicked.connect(lambda:self.return_tool(self.studView, self.studModel))
+                
+        # checkInLayout.addWidget(toolName)
+        topLayout.addWidget(toolIn)
+        topLayout.addWidget(toolOut)
 
         #create filter model, based on original model
         self.toolProxy = myFilterProxyModel(excluded_values=[0], column=location_column)
@@ -224,6 +232,7 @@ class myDashboard(QWidget):
         self.toolView.setModel(self.toolProxy)
         #give the proxy to the view     
         
+        layout.addLayout(topLayout)
         layout.addWidget(self.toolView)
         self.mainLayout.addLayout(layout)
         #add the view to the layout, and then to the main
@@ -252,7 +261,7 @@ class myDashboard(QWidget):
     #given table of currently in students, and a model to modify, give them tool thats currently clicked
         
         source_row, record = self.get_source_row(table, model, self.studProxy)
-        #find the original row index, and the values in that row
+        #find the original row index (source_row), and the values in that row (record)
         
         tool = record.value("tool")
         #get the value at this specified field
@@ -303,13 +312,12 @@ class myDashboard(QWidget):
 
         row, record = self.get_source_row(view, model, self.studProxy)
 
-
         raw = record.value("tool") or ""
         items = [line.strip() for line in raw.split("\n") if line.strip()]
         #get the raw data, and turn into list
 
         dialog = QDialog()
-        layout = QVBoxLayout(dialog)
+        layout = QVBoxLayout()
         list_widget = QListWidget()
         dialog.setWindowTitle("Tool Return Checklist")
         #setup for the dialog box
@@ -346,31 +354,54 @@ class myDashboard(QWidget):
         btn.clicked.connect(remove_checked)
         dialog.exec()
     
-    def checkIn(self):
-    #function to check a student in
+    def checkIn(self, targetId, targetText):
+    #function to change a students location
+    #used for both checking in, and checkout out a student
         #grabs id and table section (section not necessary, defaults to In?)
         #changes location
+        print(targetId)
+        print(targetText) 
+        col = self.studModel.fieldIndex("id")
+        print(col)
+        matches = self.studModel.match(
+            self.studModel.index(0, col),   #where to start
+            Qt.ItemDataRole.DisplayRole,    #what role to search
+            targetId,                       #what to look for 
+            hits=1,                         #how many to return
+            flags=Qt.MatchFlag.MatchExactly #what flag
+        )   #returns set of values
 
-        studID = self.idEntry
-        space = self.spaceName
-        print(f"studID: {studID.text()}, space: {space.text()}")
-        searchColumn = "location"
-        #find the student, and the students' tool to change
+        print(matches)
 
-        # cursor = self.studModel.db  #text of students tool list
-        # cursor.exec(f"SET location = {space.text()} WHERE id = {int(studID.text())}")
-        # cursor.commit()
+        if matches:
+            index = matches[0]
+            row = index.row()
 
-        rowIndex = self.studModel.indexInQuery(studID.text())
-        self.studModel.change_value(rowIndex.row(), searchColumn, space.text())
+            #now with row, just change the text of the location to whatever was entered
+            self.studModel.change_value(row, "location", targetText)
 
-    def checkOut(self):
+            #make auto note
+            
+        else:
+            #dialog to say not found
+            QMessageBox.critical(
+                self,
+                "Failed",
+                "Student ID not found."
+            )
+
+    def checkOut(self, view, model, proxy):
     #function to check a student out
         #click on the student getting out
         #checks if anything needs to be returned
         #sets location to none
         #makes note of day/time and that they left
-        return
+
+        row, record = self.get_source_row(view, model, proxy)
+
+        model.change_value(row, "location", "None")
+        # return
+
     
     def add_note(self, view):
         self.reporting = makeNote_dialog(self)
@@ -408,11 +439,13 @@ class myDashboard(QWidget):
     
     def auto_report(self, value, location):
         #generates auto report, for assigning tools, students
+        #  noteid, studid, toolid, location, note, time
         ct = datetime.datetime() 
         return
     
     def get_source_row(self, view, model, proxy):
-    #given a view, model, and proxy, find the source row of the current views row
+    # given a view, model, and proxy, find the source row of the currently cliked on views row
+    # returns row number in source model, and record: all values in that row
         proxy_index = view.currentIndex()
         #find the index of the view
         source_index = proxy.mapToSource(proxy_index)
