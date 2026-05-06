@@ -41,7 +41,7 @@ conn = sqlite3.connect("database.sqlite3")
 cur = conn.cursor()
 
 cur.execute("""
-CREATE TABLE IF NOT EXISTS students_app (
+CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY,
     name TEXT,
     cert INTEGER

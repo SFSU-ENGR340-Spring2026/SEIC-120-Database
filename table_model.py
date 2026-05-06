@@ -18,72 +18,68 @@ TABLE_SPECS = {
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 tool TEXT DEFAULT 'None',
-                location TEXT DEFAULT 'None'
+                location TEXT DEFAULT 'None',
+                certs TEXT DEFAULT 'None'
             )
         """,
-        "headers": ["ID", "Name", "Tools", "Location"],
-        "editable_columns": ["id", "name", "tool", "location"],
+        "headers": ["ID", "Name", "Tools", "Location", "Certifications"],
+        "editable_columns": ["id", "name", "tool", "location", "certs"],
         "seed_file": BASE_DIR / "sampleStudents.csv",
-        "seed_columns": ["id", "name", "tool", "location"],
+        "seed_columns": ["id", "name", "tool", "location", "certs"],
         "seed_transform": lambda row: (
             row.get("ID", "").strip(),
             row.get("Name", "").strip(),
             row.get("Tools", "").strip(),
             row.get("Location", "").strip(),
+            row.get("Certifications", "").strip(),
         ),
     },
     "tools_app": {
         "aliases": {"sampleData.csv", "tools_app"},
         "schema": """
             CREATE TABLE IF NOT EXISTS tools_app (
-                name TEXT,
-                quantity INTEGER,
-                condition TEXT,
-                tag TEXT,
-                table_name TEXT
+                name TEXT PRIMARY KEY,
+                current_quantity INTEGER,
+                max_quantity INTEGER,
+                certification TEXT
             )
         """,
-        "headers": ["Tool", "Quantity", "Condition", "Tag", "Table"],
-        "editable_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "headers": ["Tool", "Available Quantity", "Max Quantity", "Certification"],
+        "editable_columns": ["name", "current_quantity", "max_quantity", "certification"],
         "seed_file": BASE_DIR / "sampleData.csv",
-        "seed_columns": ["name", "quantity", "condition", "tag", "table_name"],
+        "seed_columns": ["name", "current_quantity", "max_quantity", "certification"],
         "seed_transform": lambda row: (
             row.get("Tool", "").strip(),
-            row.get("Quantity", "").strip(),
-            row.get("Condition", "").strip(),
-            row.get("Tag", "").strip(),
-            row.get("Table", "").strip(),
+            row.get("Available Quantity", "").strip(),
+            row.get("Max Quantity", "").strip(),
+            row.get("Certification", "").strip()
         ),
     },
-    "reports_app": {
-        "aliases": {"sampleReports.csv", "reports_app"},
-        "schema": """
-CREATE TABLE IF NOT EXISTS reports_app (
-            report_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id INTEGER NOT NULL,
-            name TEXT,
-            time TEXT,
-            machinery TEXT,
-            table_name TEXT,
-            tools TEXT,
-            notes TEXT
-        )
-    """,
-    "headers": ["Report ID", "Student ID", "Name", "Time", "Machinery", "Table", "Tools", "Notes"],
-    "editable_columns": ["student_id", "name", "time", "machinery", "table_name", "tools", "notes"],
-    "seed_file": BASE_DIR / "sampleReports.csv",
-    "seed_columns": ["student_id", "name", "time", "machinery", "table_name", "tools", "notes"],
-    "seed_transform": lambda row: (
-        row.get("StudentID", "").strip(),
-        row.get("Name", "").strip(),
-        row.get("Time", "").strip(),
-        row.get("Machinery", "").strip(),
-        row.get("Table", "").strip(),
-        row.get("Tools", "").strip(),
-        row.get("Notes", "").strip(),
-    ),
-},
-
+     "reports_app": {
+         "aliases": {"sampleReports.csv", "reports_app"},
+         "schema": """
+             CREATE TABLE IF NOT EXISTS reports_app (
+                 name TEXT,
+                 time TEXT,
+                 machinery TEXT,
+                 table_name TEXT,
+                 tools TEXT,
+                 notes TEXT
+             )
+         """,
+         "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
+         "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+         "seed_file": BASE_DIR / "sampleReports.csv",
+         "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+         "seed_transform": lambda row: (
+             row.get("Name: ", "").strip(),
+             row.get("Time:", "").strip(),
+             row.get("Machinery:", "").strip(),
+             row.get("Table:", "").strip(),
+             row.get("Tools:", "").strip(),
+             row.get("Notes:", "").strip(),
+         ),
+     },
     "spaces_app": {
         "aliases": {"sampleTables.csv", "spaces_app"},
         "schema": """
@@ -104,6 +100,23 @@ CREATE TABLE IF NOT EXISTS reports_app (
             row.get("Tool", "").strip(),
             "None",
         ),
+    },
+    "notes_app": {
+        "aliases": {"notesApp.csv", "notes_app"},
+        "schema": """
+            CREATE TABLE IF NOT EXISTS notes_app (
+                note_id INTEGER PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                tool_name TEXT DEFAULT 'None',
+                location TEXT DEFAULT 'None',
+                note_text TEXT DEFAULT 'None',
+                timestamp TEXT DEFAULT 'None',
+                temp INTEGER DEFAULT 1
+            )
+        """,
+        "headers": ["Note ID", "Student ID", "Tool Name", "Location", "Note", "Time","Temporary"],
+        "editable_columns": ["student_id", "tool_name", "location", "note_text", "time", "temp"],
+        "seed_file": BASE_DIR / "notesApp.csv",
     },
 }
 
@@ -181,7 +194,6 @@ class tableModel(QSqlTableModel):
         if self.db is None:
             raise RuntimeError(f"Could not open SQLite database at {DB_PATH}")
 
-    
         super().__init__(parent, self.db)
         self.setTable(self.table_name)
         self.setEditStrategy(QSqlTableModel.EditStrategy.OnFieldChange)
@@ -194,12 +206,13 @@ class tableModel(QSqlTableModel):
 
     def load_reports_by_student(self, student_id):
         if not str(student_id).strip():
-             self.setFilter("")
+            self.setFilter("")
         else:
             self.setFilter(f"student_id = {int(student_id)}")
+
         if not self.select():
             raise RuntimeError(self.lastError().text())
-    
+
     def add_row(self, values):
         if len(values) != len(self.spec["editable_columns"]):
             raise ValueError(
@@ -235,3 +248,6 @@ class tableModel(QSqlTableModel):
         self.select()
         return True
     
+    def change_value(self, row, colName, value):
+        column_index = self.fieldIndex(colName)
+        self.setData(self.index(row, column_index), value)

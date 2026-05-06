@@ -14,7 +14,8 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QAbstractItemView,
     QMessageBox,
-    QTableView
+    QTableView,
+    QComboBox,
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -35,19 +36,22 @@ class mySpaces(QWidget):
         self.table3 = QTableView()
         self.table4 = QTableView()
         self.table5 = QTableView()
+        self.table6 = QTableView()
 
-        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5]
+        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5, self.table6]
         #list of views
-        self.filters = ["a*", "b*", "c*", "d*", "e*"]
+        self.filters = ["a*", "b*", "c*", "d*", "e*", "f*"]
         #list of what filters each table uses
 
         location_column = model.fieldIndex("location")
+        tableLayout = QHBoxLayout()
 
         for space, filter in zip(self.spaces, self.filters):
-            
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
+
             proxy_model.setSourceModel(model)
+            #give the proxy model a source
             
             proxy_model.setFilterKeyColumn(location_column)
             # filter by the location column in the SQLite-backed model
@@ -56,9 +60,13 @@ class mySpaces(QWidget):
             proxy_model.setFilterWildcard(filter)
             #the filter is case insensitive, and wildcard, meaning anything starting 
             # with the relevant filter is found
+
             
-            #set the model
+            #set the proxy into view
             space.setModel(proxy_model) 
+            #add view to layout
+            tableLayout.addWidget(space)
+
         
         # print(self.items)
 
@@ -70,9 +78,7 @@ class mySpaces(QWidget):
         mainLayout = QVBoxLayout(self)
         self.setLayout(mainLayout)
 
-        tableLayout = QHBoxLayout()
-
-        #create a button
+        """ #create a button
         button1 = QPushButton()
         button1.setText("Add")
 
@@ -84,24 +90,12 @@ class mySpaces(QWidget):
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(entry)
         buttonLayout.addWidget(button1)
-        buttonLayout.addWidget(button2)
+        buttonLayout.addWidget(button2) """
 
-        #add table to layout
-        tableLayout.addWidget(self.table1)
-        tableLayout.addWidget(self.table2)
-        tableLayout.addWidget(self.table3)
-        tableLayout.addWidget(self.table4)
-        tableLayout.addWidget(self.table5)
 
-        mainLayout.addLayout(buttonLayout)
+        # mainLayout.addLayout(buttonLayout)
         mainLayout.addLayout(tableLayout)
 
-        """ print("table visible?", self.table.isVisible())
-        print("table size:", self.table.size())
-        print("geometry:", self.table.geometry())
-        print("layout on window:", self.layout())
-         """
-        
         #remove ability to edit table directly
         # self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 

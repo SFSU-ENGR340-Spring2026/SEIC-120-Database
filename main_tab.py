@@ -16,12 +16,38 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
 import csv
 from table_model import tableModel as dataTable
+import sqlite3
+from datetime import datetime
+from table_model import DB_PATH
 
 from student_tab import myStudents
 from dashboard_tab import myDashboard
 from spaces_tab import mySpaces
 from tool_tab import myTools
 from reports_tab import myReports
+
+def delete_expired_notes():
+    today = datetime.now().date().isoformat()
+
+    connection = sqlite3.connect(DB_PATH)
+    try:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            DELETE FROM notes_app
+            WHERE temp = 1
+            AND timestamp != 'None'
+            AND date(timestamp) < date(?)
+            """,
+            (today,)
+        )
+
+        print("Deleted expired notes:", cursor.rowcount)
+
+        connection.commit()
+    finally:
+        connection.close()
 
 class App(QMainWindow):
 
@@ -50,14 +76,15 @@ class TableWidget(QWidget):
         self.tabs = QTabWidget()
 
         #create models
-        studModel = dataTable("students_app")
-        noteModel = dataTable("reports_app")
-        spacesModel = dataTable("spaces_app")
+        delete_expired_notes()
+
+        studModel = dataTable("students_app")  
+        noteModel = dataTable("notes_app")
         toolModel = dataTable("tools_app")
 
         #create the tabs
         self.tab1 = myDashboard(studModel, noteModel, toolModel)   #3 models: students, notes, and tools
-        self.tab2 = mySpaces(spacesModel)      #1 model: spaces
+        self.tab2 = mySpaces(studModel)      #1 model: students
         self.tab3 = myStudents(studModel)    #1 model: students
         self.tab4 = myTools(toolModel)       #1 model: tools
         self.tab5 = myReports(noteModel)     #1 model: notes
