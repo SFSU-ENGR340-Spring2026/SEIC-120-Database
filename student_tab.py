@@ -3,7 +3,6 @@
 #display the table
 
 import sys
-import os
 from PyQt6.QtWidgets import (
     QApplication, 
     QWidget, 
@@ -19,13 +18,8 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox,
     QTableView,
-    QHeaderView,
-    QComboBox,
-    QDialog,
-
+    QHeaderView
 )
-from PyQt6.QtCore import QSortFilterProxyModel, Qt
-from PyQt6.QtGui import QIcon
 from table_model import tableModel
 
 
@@ -43,92 +37,34 @@ class myStudents(QWidget):
 
         #buttons
         addBtn = QPushButton()
-        addBtn.setText("Confirm")
-        addBtn.clicked.connect(lambda:self.add_student())
-
+        addBtn.setText("Add")
         delBtn = QPushButton()
-        delBtn.setText("Remove Student")
-        delBtn.clicked.connect(lambda:self.rem_student())
+        delBtn.setText("Remove")
 
-        #place to enter values
-        self.nameLine = QLineEdit()                                 
-        self.nameLine.setPlaceholderText("Enter Student Name")
-
-        self.stuIDLine = QLineEdit()
-        self.stuIDLine.setPlaceholderText("Enter Student ID Number")  
-
-        self.entries = [self.stuIDLine, self.nameLine]
-
-        # Drop down menu for Student Certifications
-        self.certBox = QComboBox()
-        # icons
-        self.printIcon = QIcon(self.get_path("3D_print_icon.png"))
-        self.lzrIcon = QIcon(self.get_path("lzr_icon.png"))
-        self.toolIcon = QIcon(self.get_path("tool_Icon.png"))
-
-        self.certBox.addItem("Student Certifications")
-        self.certBox.addItem(self.toolIcon, "Hand Tool")
-        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
-        self.certBox.addItem(self.printIcon, '3D Printer')
-        self.certBox.addItem("❌ None")
-
-        # cant select "Student Certifications" as an option, acts more as a title for drop down
-        item = self.certBox.model().item(0)
-        item.setEnabled(False) 
-
+        #place to enter value
+        entryLine = QLineEdit()
+        entryLine.setPlaceholderText("put thing")
 
         #add widgets to layout
-        changeStudentsLayout.addWidget(self.stuIDLine)
-        changeStudentsLayout.addWidget(self.nameLine)
-        changeStudentsLayout.addWidget(self.certBox)
+        changeStudentsLayout.addWidget(entryLine)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
 
-        #search bar
-        searchLayout = QHBoxLayout()               # layout created under changeStedentsLayout
-        self.searchBar = QLineEdit()
-        self.searchBar.setPlaceholderText("Search for student ID or Name")
-
-        updateBtn = QPushButton()
-        updateBtn.setText("Update Student")
-        updateBtn.clicked.connect(self.openUpdateStu)       # if update button is clicked, open updateStu
-
-        searchLayout.addWidget(self.searchBar)      # add to the searchLayout
-        searchLayout.addWidget(updateBtn)
-
-
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
-        self.mainLayout.addLayout(searchLayout)     # add to main layout
-     
 
-        self.studModel = model
+        studModel = model
         #create the model for the data
 
-        self.studentsData = QTableView()
+        studentsData = QTableView()
         #create a view to look at the model
-        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-
-        self.proxy = QSortFilterProxyModel()
-        self.proxy.setSourceModel(self.studModel)
-
-        location_column = self.studModel.fieldIndex("id")
-        #where to search
-        self.proxy.setFilterKeyColumn(location_column)
-        # filter by the location column in the SQLite-backed model
-        
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
-        #make filter case insensitive
-        self.searchBar.textChanged.connect(lambda: self.search())
-        #upon search bar being typed, activate search  
-
-        self.studentsData.setModel(self.proxy)
-        #give proxy to view
+        studentsData.setModel(studModel)
+        studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
         #layout for bottom table
         studentsDataLayout = QVBoxLayout()
 
-        studentsDataLayout.addWidget(self.studentsData)
+        studentsDataLayout.addWidget(studentsData)
 
         self.mainLayout.addLayout(studentsDataLayout)
 
@@ -139,171 +75,11 @@ class myStudents(QWidget):
         
         # show the window
         self.show()
-
-    def get_path(self, filename):
-        basedir = os.path.dirname(__file__)         # gets the absolute path of the .png's for the icons in certBox
-        return os.path.join(basedir, filename)
-
-    def add_student(self):
-        self.newToolData = []
-
-        for entry in self.entries:
-            self.newToolData.append(entry.text())
-            #add all entries to a list
-        
-        self.newToolData.append("None")                 # tools column
-        self.newToolData.append("None")                 # location column
-
-
-        # Student cert selection
-        if self.certBox.currentIndex() != -1:                       # if something is selected                 
-            index = self.certBox.currentIndex()                     # save the index 
-            if index == 1:                                      
-                self.newToolData.append("🛠️")                        # if tools is selected, add the tool icon
-                print("tool")
-            elif index == 2:
-                self.newToolData.append("❇️")                         # if laser cutter/engravr is selected, add the lzr icon
-                print("lzr")
-            elif index == 3:
-                self.newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
-                print("print")
-            else:
-                self.newToolData.append("❌")                           # if none/nothing is selected, add None
-
-           
-
-        #needs 4 entries to enter into db, default to none for new student
-        
-        self.studModel.add_row(self.newToolData)
-        #add list to table
-    
-    def rem_student(self):
-        #remove a single selected row from the db
-        index = self.studentsData.currentIndex()
-        #find the row of the item
-
-        print(index.row())
-
-        if index.isValid():
-            self.studModel.del_row(index.row())
-    
-    def search(self):
-    #search function
-        self.proxy.setFilterFixedString(self.searchBar.text())
-        #just grabs text in search bar, searches for it
-
-    def openUpdateStu(self):            # method to open the update student pop up
-        update = updateStu(self.studentsData, self.studModel)
-        updateMade = update.getCert()       # check to see which cert was clicked in pop up
-
-        # get location of cert cell of selected student
-        # rowLoc = self.studentsData.currentIndex()  # gets current row you are in
-        # colLoc = 
-
-
-
-        # if update is exec
-        # check if there is a current cert in (there will always be a cert in there)
-        # keep in mind: if cert is None, we need to get rid of it 
-        # add that cert to the list 
-
-        if update.exec():                   
-           if updateMade == "tool":         # returned in updateStu method getCert
-             self.newToolData.append("🛠️")
-
-           elif updateMade == "laser":
-             self.newToolData.append("❇️")
-
-           elif updateMade == "printer":
-            self.newToolData.append("🧊")
-
-           else: 
-            self.newToolData.append("❌")
-            
-
-
-
-class updateStu(QDialog):               # pop up for updating a student    
-    def __init__(self, view, model, parent = None):
-        super().__init__(parent)
-
-        self.setWindowTitle("Update Student")
-        self.setFixedSize(300, 250)
-
-        layout = QVBoxLayout(self)
-        topLayout = QHBoxLayout()
-        bottomLayout = QHBoxLayout()
-
-        # text boxes
-        self.stuIDLine = QLineEdit()
-        self.stuIDLine.setPlaceholderText("Enter Student ID Number")
-        self.stuIDLine.setText(f"{view.currentIndex().data()}")            # populate id entry box with the selected student ID
-
-        self.stuNameLine = QLineEdit()
-        self.stuNameLine.setPlaceholderText("Enter Student Name") 
-
-        topLayout.addWidget(self.stuIDLine)
-        topLayout.addWidget(self.stuNameLine)
-        layout.addLayout(topLayout)
-
-
-        # student certifications combo box
-        self.certBox = QComboBox()
-        # icons
-        self.printIcon = QIcon('3D_print_icon.png')
-        self.lzrIcon = QIcon('lzr_icon.png')
-        self.toolIcon = QIcon('tool_Icon.png')
-
-        self.certBox.addItem("Student Certifications")
-        self.certBox.addItem(self.toolIcon, "Hand Tool")
-        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
-        self.certBox.addItem(self.printIcon, '3D Printer')
-        self.certBox.addItem("❌ None")
-
-        layout.addWidget(self.certBox)      # add to layout
-
-        
-        # buttons
-        applyBtn = QPushButton("Apply")
-        cancelBtn = QPushButton("Cancel")
-
-        applyBtn.clicked.connect(self.accept)
-        cancelBtn.clicked.connect(self.reject)
-
-        bottomLayout.addWidget(applyBtn)
-        bottomLayout.addWidget(cancelBtn)
-
-        layout.addLayout(bottomLayout)
-
-    def getCert(self):
-   # Student cert selection
-        if self.certBox.currentIndex() != -1:                       # if something is selected                 
-            index = self.certBox.currentIndex()                     # save the index 
-            if index == 1:                                      
-                # return tool to openUpdateStu in myStudets to append cert
-                return("tool")
-                print("+tool")
-            elif index == 2:
-                  # return laser to openUpdateStu in myStudets to append cert
-                return("laser")
-                print("+lzr")
-            elif index == 3:
-                 # return printer to openUpdateStu in myStudets to append cert
-                return("printer")
-                print("+print")
-            else:
-                #newToolData.append("❌")  
-                return("None")
-                print("+none")
-
-
-
     
 if __name__ == '__main__':
-
     app = QApplication(sys.argv)
 
-    model = tableModel("students_app")
+    model = tableModel("sampleStudents.csv")
 
     # create the main window
     window = myStudents(model)

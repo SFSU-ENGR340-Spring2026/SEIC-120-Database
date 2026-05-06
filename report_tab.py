@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QComboBox
 )
-from table_model import tableModel
+from table_tests import MyTableWidget
 
 
 import csv
@@ -64,7 +64,7 @@ class myReports(QWidget):
         self.mainLayout.addLayout(changeStudentsLayout)
 
         #layout for bottom table
-        studentsData = tableModel("sampleReports.csv")
+        studentsData = QTableWidget()
         studentsDataLayout = QVBoxLayout()
 
         studentsDataLayout.addWidget(studentsData)

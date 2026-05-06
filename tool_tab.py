@@ -1,9 +1,8 @@
-#dashboard
+#tools tab
+#add/remove tools
+#display the table
 
 import sys
-import os
-from PyQt6.QtCore import QSortFilterProxyModel, Qt
-from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication, 
     QWidget, 
@@ -19,8 +18,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QGroupBox,
     QHeaderView,
-    QTableView,
-    QComboBox
+    QTableView
 )
 from table_model import tableModel
 
@@ -37,13 +35,19 @@ class myTools(QWidget):
         self.model = model
         #create the model for the data
 
+        self.studentsData = QTableView()
+        #create the view to look at the model
+
+        #format output
+        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        #select only one at a time
+        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        #contents will stretch to fit window
+
+        self.studentsData.setModel(self.model)
+
         #layout for top thing
         self.create_top_layout()
-
-        #search bar
-        self.searchBar = QLineEdit()
-        self.searchBar.setPlaceholderText("Search for tool")
-        self.mainLayout.addWidget(self.searchBar)
 
         #layout for bottom table
         self.create_bot_layout()
@@ -62,36 +66,19 @@ class myTools(QWidget):
        
         #buttons
         addBtn = QPushButton()
-        addBtn.setText("Add Tool")
+        addBtn.setText("Add")
 
         delBtn = QPushButton()
-        delBtn.setText("Remove Tool")
+        delBtn.setText("Remove")
 
         #place to enter value
         self.nameEntry = QLineEdit()
         self.quanEntry = QLineEdit()
         self.condEntry = QLineEdit()
-        self.entries = [self.nameEntry, self.quanEntry, self.condEntry]
+        self.tagEntry = QLineEdit()
+        self.locatEntry = QLineEdit()
 
-
-      
-        # Drop down menu for Student Certifications
-        self.certBox = QComboBox()
-        # icons
-        self.printIcon = QIcon(self.get_path("3D_print_icon.png"))
-        self.lzrIcon = QIcon(self.get_path("lzr_icon.png"))
-        self.toolIcon = QIcon(self.get_path("tool_Icon.png"))
-
-        self.certBox.addItem("Student Certifications")
-        self.certBox.addItem(self.toolIcon, "Hand Tool")
-        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
-        self.certBox.addItem(self.printIcon, '3D Printer')
-        self.certBox.addItem("❌ None")
-
-        # cant select "Student Certifications" as an option, acts more as a title for drop down
-        item = self.certBox.model().item(0)
-        item.setEnabled(False) 
-
+        self.entries = [self.nameEntry, self.quanEntry, self.condEntry, self.tagEntry, self.locatEntry]
         
         self.reset_entry_text()
 
@@ -102,10 +89,8 @@ class myTools(QWidget):
         for entry in self.entries:
             changeStudentsLayout.addWidget(entry)
 
-        changeStudentsLayout.addWidget(self.certBox)
         changeStudentsLayout.addWidget(addBtn)
         changeStudentsLayout.addWidget(delBtn)
-       
 
         self.mainLayout.addLayout(changeStudentsLayout)
 
@@ -114,65 +99,22 @@ class myTools(QWidget):
     
         studentsDataLayout = QVBoxLayout()
 
-        self.studentsData = QTableView()
-        #create the view to look at the model
-
-        #format output
-        self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        #select only one at a time
-        self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        #contents will stretch to fit window
-
-        self.proxy = QSortFilterProxyModel()
-
-        self.proxy.setSourceModel(self.model)
-        #give the proxy model a source
-        
-        location_column = self.model.fieldIndex("name")
-        #where to search
-        self.proxy.setFilterKeyColumn(location_column)
-        # filter by the location column in the SQLite-backed model
-        
-        self.proxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
-        #make filter case insensitive
-        self.searchBar.textChanged.connect(lambda: self.search())
-        #upon search bar being typed, activate search  
-
-        self.studentsData.setModel(self.proxy)
-        #give proxy to view
-
         studentsDataLayout.addWidget(self.studentsData)
-        #add view to layout
 
         self.mainLayout.addLayout(studentsDataLayout)
-        #add layout to main layout
 
     def add_Tool(self):
         newToolData = []
 
-        for entry in self.entries:
-            newToolData.append(entry.text())
-            #add all entries to a list
-
-            # Student cert selection
-        if self.certBox.currentIndex() != -1:                       # if something is selected                 
-            index = self.certBox.currentIndex()                     # save the index 
-            if index == 1:                                      
-                newToolData.append("🛠️")                        # if tools is selected, add the tool icon
-                print("tool")
-            elif index == 2:
-                newToolData.append("❇️")                         # if laser cutter/engravr is selected, add the lzr icon
-                print("lzr")
-            elif index == 3:
-                newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
-                print("print")
-            else:
-                newToolData.append("❌")                           # if none/nothing is selected, add None
-
+        newToolData.append(self.nameEntry.text())
+        newToolData.append(self.quanEntry.text())
+        newToolData.append(self.condEntry.text())
+        newToolData.append(self.tagEntry.text())
+        newToolData.append(self.locatEntry.text())
+        #add all entries to a list
 
         self.model.add_row(newToolData)
-        #add list to table
-
+        #add to table
     
     def remove_tool(self):
     #remove a single selected row from the db
@@ -186,31 +128,19 @@ class myTools(QWidget):
             #remove it
 
 
+
     def reset_entry_text(self):
     #helper function to reset the text entries       
-        textBoxes = ["Tool Name", "Max Quantity", "Current Quantity", "Tool Condition"]
+        textBoxes = ["Tool Name", "Quantity", "Tool Condition", "High or Low Power", "Location"]
         #the text to reset them to
 
         for entryItem, text in zip(self.entries, textBoxes):
             entryItem.setPlaceholderText(text)
 
-    def search(self):
-    #search function
-        self.proxy.setFilterFixedString(self.searchBar.text())
-        #just grabs text in search bar, searches for it
-
-
-    def get_path(self, filename):
-        basedir = os.path.dirname(__file__)         # gets the absolute path of the .png's for the icons in certBox
-        return os.path.join(basedir, filename)
-    
-
-
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    dataModel = tableModel("tools_app")
+    dataModel = tableModel("sampleData.csv")
 
     # create the main window
     window = myTools(dataModel)

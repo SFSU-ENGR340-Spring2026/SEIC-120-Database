@@ -1,4 +1,3 @@
-# Hold all of the tabs, the combined UI 
 #tab tests
 
 import sys
@@ -19,7 +18,7 @@ from table_model import tableModel as dataTable
 
 from student_tab import myStudents
 from dashboard_tab import myDashboard
-from spaces_tab import mySpaces
+from spaces_tab import myTables
 from tool_tab import myTools
 from reports_tab import myReports
 
@@ -30,10 +29,10 @@ class App(QMainWindow):
         self.title = 'SEIC 120 Database'
         self.left = 0
         self.top = 0
-        width = 600
-        height = 400
+        self.width = 600
+        self.height = 400
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, width, height)
+        self.setGeometry(self.left, self.top, self.width, self.height)
         
         self.table_widget = TableWidget(self)
         self.setCentralWidget(self.table_widget)
@@ -49,17 +48,13 @@ class TableWidget(QWidget):
         # Initialize tab screen
         self.tabs = QTabWidget()
 
-        #create models
-        studModel = dataTable("students_app")  
-        noteModel = dataTable("notes_app")
-        toolModel = dataTable("tools_app")
-
         #create the tabs
-        self.tab1 = myDashboard(studModel, noteModel, toolModel)   #3 models: students, notes, and tools
-        self.tab2 = mySpaces(studModel)      #1 model: students
-        self.tab3 = myStudents(studModel)    #1 model: students
-        self.tab4 = myTools(toolModel)       #1 model: tools
-        self.tab5 = myReports(noteModel)     #1 model: notes
+        self.tab1 = myDashboard((studentsModel, notesModel, toolsModel)
+)
+        self.tab2 = myTables()
+        self.tab3 = myStudents()
+        self.tab4 = myTools()
+        self.tab5 = myReports()
         # self.tabs.resize(300,200)
         
         # Add tabs to the tabs widget

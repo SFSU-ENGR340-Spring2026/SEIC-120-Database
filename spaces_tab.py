@@ -14,8 +14,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QAbstractItemView,
     QMessageBox,
-    QTableView,
-    QComboBox,
+    QTableView
 )
 
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -24,11 +23,9 @@ from table_model import tableModel
 
 import csv
 
-class mySpaces(QWidget):
+class myTables(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        model = model
 
         #create the views
         self.table1 = QTableView()
@@ -36,49 +33,42 @@ class mySpaces(QWidget):
         self.table3 = QTableView()
         self.table4 = QTableView()
         self.table5 = QTableView()
-        self.table6 = QTableView()
 
-        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5, self.table6]
+        self.spaces = [self.table1, self.table2, self.table3, self.table4, self.table5]
         #list of views
-        self.filters = ["a*", "b*", "c*", "d*", "e*", "f*"]
+        self.filters = ["a*", "b*", "c*", "d*", "e*"]
         #list of what filters each table uses
 
-        location_column = model.fieldIndex("location")
-        tableLayout = QHBoxLayout()
-
         for space, filter in zip(self.spaces, self.filters):
+            
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
-
             proxy_model.setSourceModel(model)
-            #give the proxy model a source
             
-            proxy_model.setFilterKeyColumn(location_column)
-            # filter by the location column in the SQLite-backed model
+            proxy_model.setFilterKeyColumn(3)
+            #column 3 (0 index), checks to filter by student location
             
             proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
             proxy_model.setFilterWildcard(filter)
             #the filter is case insensitive, and wildcard, meaning anything starting 
             # with the relevant filter is found
-
             
-            #set the proxy into view
+            #set the model
             space.setModel(proxy_model) 
-            #add view to layout
-            tableLayout.addWidget(space)
-
         
         # print(self.items)
 
         # set the window title
         self.setWindowTitle('Tables')
-        self.setGeometry(100, 100, 1500, 700)    #set window size
+        self.setGeometry(100, 100, 640, 420)    #set window size
 
         #set the layout
         mainLayout = QVBoxLayout(self)
         self.setLayout(mainLayout)
 
-        """ #create a button
+        tableLayout = QHBoxLayout()
+
+        #create a button
         button1 = QPushButton()
         button1.setText("Add")
 
@@ -90,12 +80,24 @@ class mySpaces(QWidget):
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(entry)
         buttonLayout.addWidget(button1)
-        buttonLayout.addWidget(button2) """
+        buttonLayout.addWidget(button2)
 
+        #add table to layout
+        tableLayout.addWidget(self.table1)
+        tableLayout.addWidget(self.table2)
+        tableLayout.addWidget(self.table3)
+        tableLayout.addWidget(self.table4)
+        tableLayout.addWidget(self.table5)
 
-        # mainLayout.addLayout(buttonLayout)
+        mainLayout.addLayout(buttonLayout)
         mainLayout.addLayout(tableLayout)
 
+        """ print("table visible?", self.table.isVisible())
+        print("table size:", self.table.size())
+        print("geometry:", self.table.geometry())
+        print("layout on window:", self.layout())
+         """
+        
         #remove ability to edit table directly
         # self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
@@ -106,10 +108,10 @@ class mySpaces(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    model = tableModel("spaces_app")
+    model = tableModel("sampleStudents.csv")
 
     # create the main window
-    window = mySpaces(model)
+    window = myTables(model)
 
     # start the event loop
     sys.exit(app.exec())
