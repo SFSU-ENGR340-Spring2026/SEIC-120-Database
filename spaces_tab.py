@@ -16,9 +16,11 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QTableView,
     QComboBox,
+    QHeaderView,
+    QGroupBox,
 )
 
-from PyQt6.QtCore import QSortFilterProxyModel, Qt
+from PyQt6.QtCore import QSortFilterProxyModel, Qt, QRegularExpression
 
 from table_model import tableModel 
 
@@ -34,6 +36,7 @@ class mySpaces(QWidget):
         self.table1 = QTableView()
         self.table2 = QTableView()
         self.table3 = QTableView()
+
         self.table4 = QTableView()
         self.table5 = QTableView()
         self.table6 = QTableView()
@@ -44,11 +47,18 @@ class mySpaces(QWidget):
         #list of what filters each table uses
 
         location_column = model.fieldIndex("location")
-        tableLayout = QHBoxLayout()
+        tableLayout1 = QHBoxLayout()
+        tableLayout2 = QHBoxLayout()
+        finalTables = QVBoxLayout()
+
+        t = 0
 
         for space, filter in zip(self.spaces, self.filters):
             proxy_model = QSortFilterProxyModel()
             #create the model for filtering
+
+            group = QGroupBox(title=f"Section {filter}")
+            gLayout = QHBoxLayout()
 
             proxy_model.setSourceModel(model)
             #give the proxy model a source
@@ -57,18 +67,38 @@ class mySpaces(QWidget):
             # filter by the location column in the SQLite-backed model
             
             proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-            proxy_model.setFilterWildcard(filter)
+
+            if space is self.table5:
+                proxy_model.setFilterRegularExpression(
+                    QRegularExpression(r"^(?!none$)e.*", QRegularExpression.PatternOption.CaseInsensitiveOption)
+                )
+                print("did it")
+                #for e specifically, dont want none to be included in the filter
+            else:
+                proxy_model.setFilterWildcard(filter)
             #the filter is case insensitive, and wildcard, meaning anything starting 
             # with the relevant filter is found
-
             
             #set the proxy into view
-            space.setModel(proxy_model) 
+            space.setModel(proxy_model)
+            space.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch) 
+            
+            gLayout.addWidget(space)
+            group.setLayout(gLayout)
+            
             #add view to layout
-            tableLayout.addWidget(space)
+            t += 1
+            if t <= 3:
+                tableLayout1.addWidget(group)
+                #this way, 2 rows of 3 columns
+            elif t > 3:
+                tableLayout2.addWidget(group)
 
         
         # print(self.items)
+
+        finalTables.addLayout(tableLayout1)
+        finalTables.addLayout(tableLayout2)
 
         # set the window title
         self.setWindowTitle('Tables')
@@ -94,7 +124,7 @@ class mySpaces(QWidget):
 
 
         # mainLayout.addLayout(buttonLayout)
-        mainLayout.addLayout(tableLayout)
+        mainLayout.addLayout(finalTables)
 
         #remove ability to edit table directly
         # self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
