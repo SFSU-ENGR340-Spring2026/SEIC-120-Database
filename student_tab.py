@@ -22,6 +22,8 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QComboBox,
     QDialog,
+    QCheckBox,
+    
 
 )
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
@@ -195,11 +197,13 @@ class myStudents(QWidget):
     def openUpdateStu(self):            # method to open the update student pop up
         update = updateStu(self.studentsData, self.studModel)
         updateMade = update.getCert()       # check to see which cert was clicked in pop up
+        print(updateMade)
+
 
         # get location of cert cell of selected student
-        # rowLoc = self.studentsData.currentIndex()  # gets current row you are in
-        # colLoc = 
-
+        index = self.studentsData.currentIndex()  # saves the cell that is clicked on
+        colLoc = index.column()                     # gets col of clicked cell
+        rowLoc = index.row()                        # gets row of clicked cell
 
 
         # if update is exec
@@ -207,18 +211,26 @@ class myStudents(QWidget):
         # keep in mind: if cert is None, we need to get rid of it 
         # add that cert to the list 
 
-        if update.exec():                   
-           if updateMade == "tool":         # returned in updateStu method getCert
-             self.newToolData.append("🛠️")
+        if update.exec():
+            updateMade = update.getCert()       # check to see which cert was clicked in pop up
+            print(updateMade)
 
-           elif updateMade == "laser":
-             self.newToolData.append("❇️")
+            updatedCerts = ""
 
-           elif updateMade == "printer":
-            self.newToolData.append("🧊")
+            if updateMade.get("tool") == True:         # returned in updateStu method getCert
+                updatedCerts = f"{updatedCerts}🛠️"
+                print("+tool")
 
-           else: 
-            self.newToolData.append("❌")
+            if updateMade.get("laser") == True
+                updatedCerts = f"{updatedCerts}❇️"
+                print("+lzr")
+
+            if updateMade.get("printer") == True:
+                updatedCerts = f"{updatedCerts}🧊"
+                print("+printer")
+
+            self.studModel.change_value(rowLoc, "certs", str(updatedCerts))
+
             
 
 
@@ -247,20 +259,25 @@ class updateStu(QDialog):               # pop up for updating a student
         layout.addLayout(topLayout)
 
 
-        # student certifications combo box
-        self.certBox = QComboBox()
-        # icons
-        self.printIcon = QIcon('3D_print_icon.png')
-        self.lzrIcon = QIcon('lzr_icon.png')
-        self.toolIcon = QIcon('tool_Icon.png')
+        # Cert Group
+        cert_group = QGroupBox("Student Certifications")
+        cert_layout = QVBoxLayout()
 
-        self.certBox.addItem("Student Certifications")
-        self.certBox.addItem(self.toolIcon, "Hand Tool")
-        self.certBox.addItem(self.lzrIcon, "Laser Cutter/Engraver")
-        self.certBox.addItem(self.printIcon, '3D Printer')
-        self.certBox.addItem("❌ None")
+        self.toolCertBox = QCheckBox("🛠️ Hand Tools")
 
-        layout.addWidget(self.certBox)      # add to layout
+        self.lzrCertBox = QCheckBox("Laser Cutter/Engraver")
+        self.lzrCertBox.setIcon(QIcon("lzr_icon.png"))
+
+        self.printerCertBox = QCheckBox("3D Printer")
+        self.printerCertBox.setIcon(QIcon("3D_print_icon.png"))
+
+        cert_layout.addWidget(self.toolCertBox)
+        cert_layout.addWidget(self.lzrCertBox)
+        cert_layout.addWidget(self.printerCertBox)
+
+        cert_group.setLayout(cert_layout)
+        layout.addWidget(cert_group)
+
 
         
         # buttons
@@ -276,25 +293,16 @@ class updateStu(QDialog):               # pop up for updating a student
         layout.addLayout(bottomLayout)
 
     def getCert(self):
-   # Student cert selection
-        if self.certBox.currentIndex() != -1:                       # if something is selected                 
-            index = self.certBox.currentIndex()                     # save the index 
-            if index == 1:                                      
-                # return tool to openUpdateStu in myStudets to append cert
-                return("tool")
-                print("+tool")
-            elif index == 2:
-                  # return laser to openUpdateStu in myStudets to append cert
-                return("laser")
-                print("+lzr")
-            elif index == 3:
-                 # return printer to openUpdateStu in myStudets to append cert
-                return("printer")
-                print("+print")
-            else:
-                #newToolData.append("❌")  
-                return("None")
-                print("+none")
+# Cert Check box selection
+        return { 
+            
+            "tool": self.toolCertBox.isChecked(),
+            "laser": self.lzrCertBox.isChecked(),
+            "printer": self.printerCertBox.isChecked()
+        }
+
+   
+
 
 
 
