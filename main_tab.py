@@ -28,17 +28,17 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.title = 'SEIC 120 Database'
-        self.left = 0
-        self.top = 0
-        width = 600
-        height = 400
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, width, height)
+        # self.left = 0
+        # self.top = 0
+        # width = 600
+        # height = 400
+        # self.setWindowTitle(self.title)
+        # self.setGeometry(self.left, self.top, width, height)
         
         self.table_widget = TableWidget(self)
         self.setCentralWidget(self.table_widget)
         
-        self.show()
+        self.showMaximized()
     
 class TableWidget(QWidget):
     
