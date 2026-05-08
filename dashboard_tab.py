@@ -51,9 +51,9 @@ class myDashboard(QWidget):
         self.spaceName = QLineEdit()
         self.spaceName.setPlaceholderText("What table section?")
         
-        self.spaceIn = QPushButton()
-        self.spaceIn.setText("Assign Table")
-            #no need for unassign table, happens when they check out
+        # self.spaceIn = QPushButton()
+        # self.spaceIn.setText("Assign Table")
+        #     #no need for unassign table, happens when they check out
         
         #two buttons for check in and check out
         checkIn = QPushButton()
@@ -71,7 +71,7 @@ class myDashboard(QWidget):
         #add them to the layout
         topThingLayout.addWidget(self.idEntry)
         topThingLayout.addWidget(self.spaceName)
-        topThingLayout.addWidget(self.spaceIn)
+        # topThingLayout.addWidget(self.spaceIn)
         topThingLayout.addWidget(checkIn)
         topThingLayout.addWidget(checkOut)
 
@@ -194,7 +194,7 @@ class myDashboard(QWidget):
         topLayout = QHBoxLayout()
 
         self.toolView = QTableView()
-        location_column = model.fieldIndex("quantity")
+        location_column = model.fieldIndex("current_quantity")
 
         #section for entering data
         header = QLineEdit()
@@ -419,7 +419,7 @@ class myDashboard(QWidget):
                 text = self.reporting.return_text()
                 #grab the current text in all entries
                 print(f"text: {text}")
-                text.append(0)              #if temp or not, 0 means permanents
+                text.append(0)              #if temp or not, 0 means permanent
                 self.noteModel.add_row(text)
                 #add it to the model
 
@@ -481,7 +481,6 @@ class makeNote_dialog(QDialog):
         layout = QVBoxLayout(self)
         topLayout = QHBoxLayout(self)
 
-
         # Entery Text 
         self.entryText = []
 
@@ -491,7 +490,7 @@ class makeNote_dialog(QDialog):
         self.entryText.append(self.stuIDLine)
 
         self.toolIDLine = QLineEdit()
-        self.toolIDLine.setPlaceholderText("Enter Tool ID")
+        self.toolIDLine.setPlaceholderText("Enter Tool Name")
         self.entryText.append(self.toolIDLine)
 
         self.locationLine = QLineEdit()
@@ -501,8 +500,11 @@ class makeNote_dialog(QDialog):
         self.timeLine = QLineEdit()
         self.timeLine.setPlaceholderText("YYYY-MM-DD-HH:MM")
 
+        #grab current time and date
         ct = datetime.datetime.now()
         self.timeLine.setText(str(ct)[:-7])
+        #chop off last few digits
+        print(self.timeLine.text())
         
         topLayout.addWidget(self.stuIDLine)
         topLayout.addWidget(self.toolIDLine)
@@ -551,6 +553,7 @@ class makeNote_dialog(QDialog):
                 continue
             
             text.append(entry.text())
+            # print(text)
         
         return text
 
