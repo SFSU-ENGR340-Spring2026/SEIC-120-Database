@@ -194,17 +194,35 @@ class myStudents(QWidget):
         self.proxy.setFilterFixedString(self.searchBar.text())
         #just grabs text in search bar, searches for it
 
+    def get_source_row(self, view, model, proxy):
+    # given a view, model, and proxy, find the source row of the currently cliked on views row
+    # returns row number in source model, and record: all values in that row
+        proxy_index = view.currentIndex()
+        #find the index of the view
+        source_index = proxy.mapToSource(proxy_index)
+        #find index of source model
+        source_row = source_index.row()
+        #use that to find the row at source index
+        record = model.record(source_index.row())
+        #get all the data at that row
+
+        return source_row, record
+
     def openUpdateStu(self):            # method to open the update student pop up
-        update = updateStu(self.studentsData, self.studModel)
+        
+        sourceRow, record = self.get_source_row(self.studentsData, self.studModel, self.proxy)
+        #source row is row # in source model (meaning the correct one)
+        #record is the list of values in that row
+
+        update = updateStu(self.studentsData, self.studModel, record)
         updateMade = update.getCert()       # check to see which cert was clicked in pop up
         print(updateMade)
 
 
         # get location of cert cell of selected student
-        index = self.studentsData.currentIndex()  # saves the cell that is clicked on
-        colLoc = index.column()                     # gets col of clicked cell
-        rowLoc = index.row()                        # gets row of clicked cell
-
+        # index = self.studentsData.currentIndex()  # saves the cell that is clicked on
+        # colLoc = index.column()                     # gets col of clicked cell
+        # rowLoc = index.row()                        # gets row of clicked cell
 
         # if update is exec
         # check if there is a current cert in (there will always be a cert in there)
@@ -221,7 +239,7 @@ class myStudents(QWidget):
                 updatedCerts = f"{updatedCerts}🛠️"
                 print("+tool")
 
-            if updateMade.get("laser") == True
+            if updateMade.get("laser") == True:
                 updatedCerts = f"{updatedCerts}❇️"
                 print("+lzr")
 
@@ -229,14 +247,11 @@ class myStudents(QWidget):
                 updatedCerts = f"{updatedCerts}🧊"
                 print("+printer")
 
-            self.studModel.change_value(rowLoc, "certs", str(updatedCerts))
-
-            
-
+            self.studModel.change_value(sourceRow, "certs", str(updatedCerts))
 
 
 class updateStu(QDialog):               # pop up for updating a student    
-    def __init__(self, view, model, parent = None):
+    def __init__(self, view, model, record, parent = None):
         super().__init__(parent)
 
         self.setWindowTitle("Update Student")
@@ -249,7 +264,11 @@ class updateStu(QDialog):               # pop up for updating a student
         # text boxes
         self.stuIDLine = QLineEdit()
         self.stuIDLine.setPlaceholderText("Enter Student ID Number")
-        self.stuIDLine.setText(f"{view.currentIndex().data()}")            # populate id entry box with the selected student ID
+
+        view.currentIndex()
+        #find row
+        #use row to find data at student ID
+        self.stuIDLine.setText(f"{record.value("id")}")            # populate id entry box with the selected student ID
 
         self.stuNameLine = QLineEdit()
         self.stuNameLine.setPlaceholderText("Enter Student Name") 
