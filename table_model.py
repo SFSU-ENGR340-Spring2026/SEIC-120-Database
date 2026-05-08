@@ -110,7 +110,7 @@ TABLE_SPECS = {
                 tool_name TEXT DEFAULT 'None',
                 location TEXT DEFAULT 'None',
                 note_text TEXT DEFAULT 'None',
-                timestamp TEXT DEFAULT 'None',
+                time TEXT DEFAULT 'None',
                 temp INTEGER DEFAULT 1
             )
         """,
