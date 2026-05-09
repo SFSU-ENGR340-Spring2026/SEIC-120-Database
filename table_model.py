@@ -111,12 +111,12 @@ TABLE_SPECS = {
                 tool_name TEXT DEFAULT 'None',
                 location TEXT DEFAULT 'None',
                 note_text TEXT DEFAULT 'None',
-                timestamp TEXT DEFAULT 'None',
+                time TEXT DEFAULT 'None',
                 temp INTEGER DEFAULT 1
             )
         """,
         "headers": ["Note ID", "Student ID", "Tool Name", "Location", "Note", "Time","Temporary"],
-        "editable_columns": ["student_id", "tool_name", "location", "note_text", "time", "temp"],
+        "editable_columns": ["student_id", "tool_name", "location", "note_text", "timestamp", "temp"],
         "seed_file": BASE_DIR / "notesApp.csv",
     },
 }

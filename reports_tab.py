@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import (
 )
 
 from table_model import tableModel
+from datetime import datetime
 
 
 class myReports(QWidget):
@@ -44,7 +45,8 @@ class myReports(QWidget):
         self.studentsData.setModel(self.model)
 
         # Hide report_id column
-        self.studentsData.hideColumn(0)
+        self.studentsData.hideColumn(self.model.fieldIndex("note_id"))
+        self.studentsData.hideColumn(self.model.fieldIndex("temp"))
 
         # Layout for search/buttons
         changeStudentsLayout = QHBoxLayout()
@@ -143,11 +145,15 @@ class myReports(QWidget):
                 msg.exec()
 
     def add_report(self, student_id, name, time, machinery, table_name, tools, notes):
-        self.model.add_row([student_id, name, time, machinery, table_name, tools, notes])
+            tool_name = "Report"
+            location = "None"
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            temp = 1
+            self.model.add_row([student_id, name, timestamp, machinery, table_name, tools, notes])
 
     def pull_reports(self):
         student_id = self.entryLine.text().strip()
-
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if not student_id:
             self.model.setFilter("")
             self.model.select()
@@ -419,7 +425,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # Create the model using reports_app
-    dataModel = tableModel("reports_app")
+    dataModel = tableModel("notes_app")
 
     # Create the reports window
     window = myReports(dataModel)

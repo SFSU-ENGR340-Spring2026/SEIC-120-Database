@@ -22,7 +22,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
 from table_model import tableModel
-import csv, datetime
+import csv
+from datetime import datetime
 
 class myDashboard(QWidget):
 #needs to be given 3 models, 
@@ -411,9 +412,14 @@ class myDashboard(QWidget):
             # confirm/deny pop up window
             if report == "Report Created.":
                 text = self.reporting.return_text()
+                # Create a timestamp integer to save the time
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
                 #grab the current text in all entries
                 print(f"text: {text}")
-                text.append(0)              #if temp or not, 0 means permanents
+                # make the 4th value the timestamp
+                text[4] = timestamp
+                text.append(1)              #if temp or not, 0 means permanents
                 self.noteModel.add_row(text)
                 #add it to the model
 
@@ -471,7 +477,7 @@ class makeNote_dialog(QDialog):
         self.setFixedSize(700,700)
 
         layout = QVBoxLayout(self)
-        topLayout = QHBoxLayout(self)
+        topLayout = QHBoxLayout()
 
 
         # Entery Text 
@@ -493,7 +499,7 @@ class makeNote_dialog(QDialog):
         self.timeLine = QLineEdit()
         self.timeLine.setPlaceholderText("YYYY-MM-DD-HH:MM")
 
-        ct = datetime.datetime.now()
+        ct = datetime.now()
         self.timeLine.setText(str(ct)[:-7])
         
         topLayout.addWidget(self.stuIDLine)
