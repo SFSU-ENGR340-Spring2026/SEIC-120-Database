@@ -103,10 +103,9 @@ class myDashboard(QWidget):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
         layout = QVBoxLayout()
-
         topLay = QHBoxLayout()
-
         header = QLineEdit()
+
         header.setText(textBox)
         header.setReadOnly(True)
         topLay.addWidget(header)
@@ -140,7 +139,6 @@ class myDashboard(QWidget):
     #function repeated for each of the three sections in the dashboard
     #students checked in, tools available, notes
         layout = QVBoxLayout()
-        
 
         #header section of the layout
         headerLayout = QHBoxLayout()
@@ -198,6 +196,7 @@ class myDashboard(QWidget):
 
         #section for entering data
         header = QLineEdit()
+        header.textChanged.connect(lambda:self.search_tools(model, header.text()))
         header.setPlaceholderText(textBox)
         # header.setReadOnly(True)
         topLayout.addWidget(header)
@@ -215,8 +214,13 @@ class myDashboard(QWidget):
         topLayout.addWidget(toolOut)
 
         #create filter model, based on original model
-        self.toolProxy = myFilterProxyModel(excluded_values=[0], column=location_column)
+        self.toolProxy = MultiColumnFilterProxy()
         self.toolProxy.setSourceModel(model)
+
+        self.toolProxy.set_exclude_filter(model.fieldIndex("current_quantity"), "0")
+
+        print(model.fieldIndex("name"))
+        print(model.fieldIndex("current_quantity"))
 
         self.toolView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         #make it stretch
@@ -236,6 +240,9 @@ class myDashboard(QWidget):
         layout.addWidget(self.toolView)
         self.mainLayout.addLayout(layout)
         #add the view to the layout, and then to the main
+
+    def search_tools(self, model, text):
+        self.toolProxy.set_include_filter(model.fieldIndex("name"), text)
 
     def showReports(self, table):
         row = table.currentIndex()
@@ -260,41 +267,67 @@ class myDashboard(QWidget):
     def assign_tool(self, table, model):
     #given table of currently in students, and a model to modify, give them tool thats currently clicked
         
-        source_row, record = self.get_source_row(table, model, self.studProxy)
+        sourceStudRow, record = self.get_source_row(table, model, self.studProxy)
         #find the original row index (source_row), and the values in that row (record)
         
         tool = record.value("tool")
         #get the value at this specified field
-
-        # print(f"current tool: {tool}, proxy row: {proxy_index.row()}, source row: {source_index.row()}")
         
-        toolRow = self.toolView.currentIndex()
-        #and the tool to be added
+        toolIndex = self.toolView.currentIndex()
+        #index (row, col, data) of currently clicked on tool
+        toolRow = toolIndex.row()                       #find its row
+        toolCol = self.toolModel.fieldIndex("name")     #find col for names
+        index = self.toolModel.index(toolRow,toolCol)   #index it
 
         searchColumn = "tool"
         #find the student, and the students' tool to change
 
-        toolList = str(tool)  #text of students tool list
-        currTool = str(toolRow.data())  #text of tool to be added
+        toolList = "" if tool in (None, "", "None") else str(tool)
+        #if person has no tool to begin with
+
+        currTool = str(self.toolModel.data(index))  
+        #get text of tool to be added using that index
+
         # print(f"tool to add: {currTool}")
+        
+        print(toolRow)
+        if toolRow < 0:
+            QMessageBox.critical(
+                self,
+                "Failed",
+                "Current Quantity of tool is too low. lmao"
+            )
+            return
+
+        current_quantity = self.toolModel.data(
+            self.toolModel.index(toolRow, self.toolModel.fieldIndex("current_quantity"))
+        )
+        if int(current_quantity) <= 0:
+            QMessageBox.critical(
+                self,
+                "Failed",
+                "Current Quantity of tool is too low."
+            )
+            return
         
         if toolList == "":
         #if first time
             # print(f"test {currTool}")
-            model.change_value(source_row, searchColumn, currTool) 
+            model.change_value(sourceStudRow, searchColumn, currTool) 
             #add tool to blank string
         else:
             toolList = f"{tool}\n{currTool}"
             # print(f"not empty")
             #add existing list and new tool
-            model.change_value(source_row, searchColumn, toolList) 
+            model.change_value(sourceStudRow, searchColumn, toolList) 
             #change students tool list with new string
         
         # table.resizeRowsToContents()
 
         #decrement quantity
+        self.toolModel.adjust_value(toolRow, "current_quantity", -1, minimum=0)
+
         #make note
-        #therese you never charge yo shit
 
     
     def return_tool(self, view, model):
@@ -337,17 +370,34 @@ class myDashboard(QWidget):
 
         def remove_checked():
             remaining = []
+            returned_tools = []
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
                 if item.checkState() == Qt.CheckState.Unchecked:
                     remaining.append(item.text())
+                else:
+                    returned_tools.append(item.text())
 
             # Join back into newline string
             new_value = "\n".join(remaining)
 
-            model.setData(model.index(row, col), new_value)
-            model.submitAll()
-            # view.resizeRowsToContents()
+            model.change_value(row, "tool", new_value)
+
+            for tool_name in returned_tools:
+                toolRow = self.toolModel.find_row_by_value("name", tool_name)
+                if toolRow < 0:
+                    continue
+
+                max_quantity = self.toolModel.data(
+                    self.toolModel.index(toolRow, self.toolModel.fieldIndex("max_quantity"))
+                )
+                self.toolModel.adjust_value(
+                    toolRow,
+                    "current_quantity",
+                    1,
+                    minimum=0,
+                    maximum=int(max_quantity) if max_quantity not in (None, "") else None,
+                )
 
             dialog.accept()
 
@@ -557,6 +607,64 @@ class makeNote_dialog(QDialog):
         
         return text
 
+class MultiColumnFilterProxy(QSortFilterProxyModel):
+    from PyQt6.QtCore import QSortFilterProxyModel, Qt
+
+
+class MultiColumnFilterProxy(QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.include_filters = {}  # column -> text that must be present
+        self.exclude_filters = {}  # column -> text that must NOT be present
+
+    def set_include_filter(self, column, text):
+        self.include_filters[column] = text.lower().strip()
+        self.invalidateFilter()
+
+    def set_exclude_filter(self, column, text):
+        self.exclude_filters[column] = text.lower().strip()
+        self.invalidateFilter()
+
+    def clear_include_filter(self, column):
+        self.include_filters.pop(column, None)
+        self.invalidateFilter()
+
+    def clear_exclude_filter(self, column):
+        self.exclude_filters.pop(column, None)
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        model = self.sourceModel()
+
+        # Include logic: row must match all include filters
+        for column, filter_text in self.include_filters.items():
+            if not filter_text:
+                continue
+
+            index = model.index(source_row, column, source_parent)
+            value = model.data(index, Qt.ItemDataRole.DisplayRole)
+
+            if value is None:
+                return False
+
+            if filter_text not in str(value).lower():
+                return False
+
+        # Exclude logic: row must NOT match any exclude filters
+        for column, filter_text in self.exclude_filters.items():
+            if not filter_text:
+                continue
+
+            index = model.index(source_row, column, source_parent)
+            value = model.data(index, Qt.ItemDataRole.DisplayRole)
+
+            if value is None:
+                continue
+
+            if filter_text in str(value).lower():
+                return False
+
+        return True
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
