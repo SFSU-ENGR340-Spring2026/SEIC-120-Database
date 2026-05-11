@@ -387,8 +387,6 @@ class myDashboard(QWidget):
                     remaining.append(item.text())
                 else:
                     returned_tools.append(item.text())
-                else:
-                    returned_tools.append(item.text())
 
             # Join back into newline string
             new_value = "\n".join(remaining)
