@@ -269,15 +269,17 @@ class myDashboard(QWidget):
         
         sourceStudRow, record = self.get_source_row(table, model, self.studProxy)
         #find the original row index (source_row), and the values in that row (record)
+
+        sourceToolRow, toolRecord = self.get_source_row(self.toolView, self.toolModel, self.toolProxy)
         
         tool = record.value("tool")
         #get the value at this specified field
         
-        toolIndex = self.toolView.currentIndex()
+        # toolIndex = self.toolView.currentIndex()
         #index (row, col, data) of currently clicked on tool
-        toolRow = toolIndex.row()                       #find its row
+        toolRow = sourceToolRow                       #find its row
         toolCol = self.toolModel.fieldIndex("name")     #find col for names
-        index = self.toolModel.index(toolRow,toolCol)   #index it
+        index = self.toolModel.index(toolRow, toolCol)   #index it
 
         searchColumn = "tool"
         #find the student, and the students' tool to change
@@ -290,7 +292,7 @@ class myDashboard(QWidget):
 
         # print(f"tool to add: {currTool}")
         
-        print(toolRow)
+        # print(toolRow)
         if toolRow < 0:
             QMessageBox.critical(
                 self,
@@ -409,10 +411,10 @@ class myDashboard(QWidget):
     #used for both checking in, and checkout out a student
         #grabs id and table section (section not necessary, defaults to In?)
         #changes location
-        print(targetId)
-        print(targetText) 
+        # print(targetId)
+        # print(targetText) 
         col = self.studModel.fieldIndex("id")
-        print(col)
+        # print(col)
         matches = self.studModel.match(
             self.studModel.index(0, col),   #where to start
             Qt.ItemDataRole.DisplayRole,    #what role to search
@@ -421,7 +423,7 @@ class myDashboard(QWidget):
             flags=Qt.MatchFlag.MatchExactly #what flag
         )   #returns set of values
 
-        print(matches)
+        # print(matches)
 
         if matches:
             index = matches[0]
@@ -462,13 +464,13 @@ class myDashboard(QWidget):
 
             # noteid, studid, toolid, location, note, time
             report = self.reporting.getConfirmReport()        # returns if report has been made
-            print(report)
+            # print(report)
 
             # confirm/deny pop up window
             if report == "Report Created.":
                 text = self.reporting.return_text()
                 #grab the current text in all entries
-                print(f"text: {text}")
+                # print(f"text: {text}")
                 text.append(0)              #if temp or not, 0 means permanent
                 self.noteModel.add_row(text)
                 #add it to the model
@@ -554,7 +556,7 @@ class makeNote_dialog(QDialog):
         ct = datetime.datetime.now()
         self.timeLine.setText(str(ct)[:-7])
         #chop off last few digits
-        print(self.timeLine.text())
+        # print(self.timeLine.text())
         
         topLayout.addWidget(self.stuIDLine)
         topLayout.addWidget(self.toolIDLine)
