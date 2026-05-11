@@ -201,17 +201,17 @@ class filter_dialog(QDialog):
 
         # group boxes
 
-        # Tools Group
-        tool_group = QGroupBox("Tools")                 # Create Group box for tools   
-        tool_layout = QVBoxLayout()                     # Create VERTICAL layout for tool layout
+        # # Tools Group
+        # tool_group = QGroupBox("Tools")                 # Create Group box for tools   
+        # tool_layout = QVBoxLayout()                     # Create VERTICAL layout for tool layout
 
-        self.screwdriverBox = QCheckBox("Screwdriver")       # create check box
-        self.hammerBox = QCheckBox("Hammer")
-        tool_layout.addWidget(self.screwdriverBox)           # add checkbox to grup
-        tool_layout.addWidget(self.hammerBox)
+        # self.screwdriverBox = QCheckBox("Screwdriver")       # create check box
+        # self.hammerBox = QCheckBox("Hammer")
+        # tool_layout.addWidget(self.screwdriverBox)           # add checkbox to grup
+        # tool_layout.addWidget(self.hammerBox)
 
-        tool_group.setLayout(tool_layout)               # add layout to group
-        layout.addWidget(tool_group)                    # add tool group to main pop up layout
+        # tool_group.setLayout(tool_layout)               # add layout to group
+        # layout.addWidget(tool_group)                    # add tool group to main pop up layout
 
         # spaces group
         spaces_group = QGroupBox("Tables")
@@ -355,9 +355,9 @@ class filter_dialog(QDialog):
     def getFilters(self):
         return {
           
-            # tools
-            "Screwdriver": self.screwdriverBox.isChecked(),
-            "Hammer:": self.hammerBox.isChecked(),
+            # # tools
+            # "Screwdriver": self.screwdriverBox.isChecked(),
+            # "Hammer:": self.hammerBox.isChecked(),
 
             # spaces
             "A1": self.tableA1Box.isChecked(),

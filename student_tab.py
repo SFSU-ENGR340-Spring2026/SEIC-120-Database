@@ -215,39 +215,64 @@ class myStudents(QWidget):
         #record is the list of values in that row
 
         update = updateStu(self.studentsData, self.studModel, record)
-        updateMade = update.getCert()       # check to see which cert was clicked in pop up
-        print(updateMade)
+        certUpdate = update.getCert()       # check to see which cert was clicked in pop up
 
+        idUpdate = update.getIDChange()     # check to see if ID was changed. cont. in line 247
+        print(certUpdate)
 
-        # get location of cert cell of selected student
-        # index = self.studentsData.currentIndex()  # saves the cell that is clicked on
-        # colLoc = index.column()                     # gets col of clicked cell
-        # rowLoc = index.row()                        # gets row of clicked cell
+        nameUpdate = update.getNameChange() # check to see if the stu name was changed
+        print(nameUpdate)
 
-        # if update is exec
-        # check if there is a current cert in (there will always be a cert in there)
-        # keep in mind: if cert is None, we need to get rid of it 
-        # add that cert to the list 
-
+        
         if update.exec():
-            updateMade = update.getCert()       # check to see which cert was clicked in pop up
-            print(updateMade)
+            certUpdate = update.getCert()       # check to see which cert was clicked in pop up
+            print(certUpdate)
 
+            idUpdate = update.getIDChange()     
+            print(idUpdate)
+
+            nameUpdate = update.getNameChange()
+            print(nameUpdate)
+
+            # Certification Update
             updatedCerts = ""
-
-            if updateMade.get("tool") == True:         # returned in updateStu method getCert
+            if certUpdate.get("tool") == True:         # returned in updateStu method getCert
                 updatedCerts = f"{updatedCerts}🛠️"
                 print("+tool")
 
-            if updateMade.get("laser") == True:
+            if certUpdate.get("laser") == True:
                 updatedCerts = f"{updatedCerts}❇️"
                 print("+lzr")
 
-            if updateMade.get("printer") == True:
+            if certUpdate.get("printer") == True:
                 updatedCerts = f"{updatedCerts}🧊"
                 print("+printer")
 
             self.studModel.change_value(sourceRow, "certs", str(updatedCerts))
+
+            # ID Change
+            updatedID = ""                                      
+            if idUpdate != "=ID":                                       # if the id was updated
+                updatedID = idUpdate                                    # add that too updated id
+            else:
+                updatedID = str(record.value("id"))
+
+            self.studModel.change_value(sourceRow, "id", updatedID)  # change it 
+
+
+            # Name Chage
+            updatedName = ""
+            if nameUpdate != "=Name":
+                updatedName = nameUpdate
+            else:
+                updatedName = str(record.value("name"))
+
+            self.studModel.change_value(sourceRow, "name", updatedName)
+            
+
+       
+
+
 
 
 class updateStu(QDialog):               # pop up for updating a student    
@@ -269,9 +294,13 @@ class updateStu(QDialog):               # pop up for updating a student
         #find row
         #use row to find data at student ID
         self.stuIDLine.setText(f"{record.value("id")}")            # populate id entry box with the selected student ID
+        self.oldID = str(record.value("id"))
 
         self.stuNameLine = QLineEdit()
         self.stuNameLine.setPlaceholderText("Enter Student Name") 
+
+        self.stuNameLine.setText(f"{record.value("name")}")        # populate student name in stu name entry box with selected student 
+        self.oldName = str(record.value("name"))
 
         topLayout.addWidget(self.stuIDLine)
         topLayout.addWidget(self.stuNameLine)
@@ -314,11 +343,30 @@ class updateStu(QDialog):               # pop up for updating a student
     def getCert(self):
 # Cert Check box selection
         return { 
-            
+            # check what cert is selected
             "tool": self.toolCertBox.isChecked(),
             "laser": self.lzrCertBox.isChecked(),
             "printer": self.printerCertBox.isChecked()
         }
+    
+    def getIDChange(self):
+        self.newID = self.stuIDLine.text()
+
+        if self.newID == self.oldID:      # if current id is the same as old id
+            return("=ID")     
+        else:                   # if the current id is NOT the same as the old ID
+            return(self.newID)
+        
+    
+    def getNameChange(self):
+        self.newName = self.stuNameLine.text()
+
+        if self.newName == self.oldName:
+            return("=Name")
+        else:
+            return(self.newName)
+            
+
 
    
 
