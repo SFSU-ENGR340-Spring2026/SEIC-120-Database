@@ -334,6 +334,7 @@ class myDashboard(QWidget):
         self.toolModel.adjust_value(toolRow, "current_quantity", -1, minimum=0)
 
         #make note
+        self.auto_report(record.value("id"), currTool, record.value("location"), f"Checked out tool: {currTool}")
 
     
     def return_tool(self, view, model):
@@ -404,6 +405,7 @@ class myDashboard(QWidget):
                     minimum=0,
                     maximum=int(max_quantity) if max_quantity not in (None, "") else None,
                 )
+                self.auto_report(record.value("id"), tool_name, record.value("location"), f"Returned tool: {tool_name}")
 
             dialog.accept()
 
@@ -429,14 +431,28 @@ class myDashboard(QWidget):
 
         # print(matches)
 
+        targetText = targetText.strip()
+        normalized_location = targetText if targetText else "None"
+
         if matches:
             index = matches[0]
             row = index.row()
+            old_location = self.studModel.data(self.studModel.index(row, self.studModel.fieldIndex("location")))
 
             #now with row, just change the text of the location to whatever was entered
-            self.studModel.change_value(row, "location", targetText)
+            self.studModel.change_value(row, "location", normalized_location)
 
             #make auto note
+            if normalized_location == "None":
+                note_text = "Checked in without a location"
+            elif old_location in (None, "", "None"):
+                note_text = f"Checked in to {normalized_location}"
+            elif str(old_location) != str(normalized_location):
+                note_text = f"Moved from {old_location} to {normalized_location}"
+            else:
+                note_text = f"Checked in to {normalized_location}"
+
+            self.auto_report(targetId, "None", normalized_location, note_text)
             
         else:
             #dialog to say not found
@@ -455,7 +471,11 @@ class myDashboard(QWidget):
 
         row, record = self.get_source_row(view, model, proxy)
 
+        if view.selectionModel() is not None:
+            view.selectionModel().clearCurrentIndex()
+            view.clearSelection()
         model.change_value(row, "location", "None")
+        self.auto_report(record.value("id"), "None", "None", f"Checked out from {record.value('location')}")
         # return
 
     
@@ -493,11 +513,11 @@ class myDashboard(QWidget):
                 msg.setWindowTitle("Denied")
                 msg.exec()
     
-    def auto_report(self, value, location):
+    def auto_report(self, student_id, tool_name, location, note_text):
         #generates auto report, for assigning tools, students
         #  noteid, studid, toolid, location, note, time
-        ct = datetime.datetime() 
-        return
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.noteModel.add_row([student_id, tool_name, location, note_text, timestamp, 1])
     
     def get_source_row(self, view, model, proxy):
     # given a view, model, and proxy, find the source row of the currently cliked on views row
