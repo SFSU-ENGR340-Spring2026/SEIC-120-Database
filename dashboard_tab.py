@@ -22,7 +22,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QSortFilterProxyModel, Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
 from table_model import tableModel
-import csv, datetime
+import csv
+from datetime import datetime
 
 class myDashboard(QWidget):
 #needs to be given 3 models, 
@@ -193,6 +194,7 @@ class myDashboard(QWidget):
 
         self.toolView = QTableView()
         location_column = model.fieldIndex("current_quantity")
+        location_column = model.fieldIndex("current_quantity")
 
         #section for entering data
         header = QLineEdit()
@@ -231,7 +233,7 @@ class myDashboard(QWidget):
         self.toolView.clicked.connect(lambda:self.getTool(self.toolView))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        #look for tools with not 0 quantity, i.e. avaiable
+        #show all tools, including those currently at 0 available
 
         self.toolView.setModel(self.toolProxy)
         #give the proxy to the view     
@@ -378,10 +380,13 @@ class myDashboard(QWidget):
         def remove_checked():
             remaining = []
             returned_tools = []
+            returned_tools = []
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
                 if item.checkState() == Qt.CheckState.Unchecked:
                     remaining.append(item.text())
+                else:
+                    returned_tools.append(item.text())
                 else:
                     returned_tools.append(item.text())
 
@@ -493,10 +498,14 @@ class myDashboard(QWidget):
             # confirm/deny pop up window
             if report == "Report Created.":
                 text = self.reporting.return_text()
+                # Create a timestamp integer to save the time
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
                 #grab the current text in all entries
                 # print(f"text: {text}")
                 text.append(0)              #if temp or not, 0 means permanent
                 self.noteModel.add_row(text)
+                self.noteModel.select()
                 #add it to the model
 
                 # view.resizeRowsToContents()

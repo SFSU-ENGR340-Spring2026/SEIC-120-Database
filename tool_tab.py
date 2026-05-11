@@ -154,25 +154,23 @@ class myTools(QWidget):
             newToolData.append(entry.text())
             #add all entries to a list
 
-            # Student cert selection
+        self.model.add_row(newToolData)
+        #add list to table
+
+           # Student cert selection
         if self.certBox.currentIndex() != -1:                       # if something is selected                 
             index = self.certBox.currentIndex()                     # save the index 
             if index == 1:                                      
                 newToolData.append("🛠️")                        # if tools is selected, add the tool icon
                 print("tool")
             elif index == 2:
-                newToolData.append("❇️")                         # if laser cutter/engravr is selected, add the lzr icon
+                newToolData.append("❇️Lazer")                         # if laser cutter/engravr is selected, add the lzr icon
                 print("lzr")
             elif index == 3:
                 newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
                 print("print")
             else:
                 newToolData.append("❌")                           # if none/nothing is selected, add None
-
-
-        self.model.add_row(newToolData)
-        #add list to table
-
     
     def remove_tool(self):
     #remove a single selected row from the db
@@ -188,7 +186,7 @@ class myTools(QWidget):
 
     def reset_entry_text(self):
     #helper function to reset the text entries       
-        textBoxes = ["Tool Name", "Max Quantity", "Current Quantity", "Tool Condition"]
+        textBoxes = ["Tool Name", "Quantity", "Tool Condition"]
         #the text to reset them to
 
         for entryItem, text in zip(self.entries, textBoxes):

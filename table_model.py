@@ -1,6 +1,7 @@
 import csv
 import sqlite3
 from pathlib import Path
+import datetime
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
@@ -17,7 +18,7 @@ TABLE_SPECS = {
             CREATE TABLE IF NOT EXISTS students_app (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
-                tool TEXT DEFAULT 'None',
+                tool TEXT DEFAULT '',
                 location TEXT DEFAULT 'None',
                 certs TEXT DEFAULT 'None'
             )
@@ -55,31 +56,31 @@ TABLE_SPECS = {
             row.get("Certification", "").strip()
         ),
     },
-    # "reports_app": {
-    #     "aliases": {"sampleReports.csv", "reports_app"},
-    #     "schema": """
-    #         CREATE TABLE IF NOT EXISTS reports_app (
-    #             name TEXT,
-    #             time TEXT,
-    #             machinery TEXT,
-    #             table_name TEXT,
-    #             tools TEXT,
-    #             notes TEXT
-    #         )
-    #     """,
-    #     "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
-    #     "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
-    #     "seed_file": BASE_DIR / "sampleReports.csv",
-    #     "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
-    #     "seed_transform": lambda row: (
-    #         row.get("Name: ", "").strip(),
-    #         row.get("Time:", "").strip(),
-    #         row.get("Machinery:", "").strip(),
-    #         row.get("Table:", "").strip(),
-    #         row.get("Tools:", "").strip(),
-    #         row.get("Notes:", "").strip(),
-    #     ),
-    # },
+     "reports_app": {
+         "aliases": {"sampleReports.csv", "reports_app"},
+         "schema": """
+             CREATE TABLE IF NOT EXISTS reports_app (
+                 name TEXT,
+                 time TEXT,
+                 machinery TEXT,
+                 table_name TEXT,
+                 tools TEXT,
+                 notes TEXT
+             )
+         """,
+         "headers": ["Name", "Time", "Machinery", "Table", "Tools", "Notes"],
+         "editable_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+         "seed_file": BASE_DIR / "sampleReports.csv",
+         "seed_columns": ["name", "time", "machinery", "table_name", "tools", "notes"],
+         "seed_transform": lambda row: (
+             row.get("Name: ", "").strip(),
+             row.get("Time:", "").strip(),
+             row.get("Machinery:", "").strip(),
+             row.get("Table:", "").strip(),
+             row.get("Tools:", "").strip(),
+             row.get("Notes:", "").strip(),
+         ),
+     },
     "spaces_app": {
         "aliases": {"sampleTables.csv", "spaces_app"},
         "schema": """
@@ -129,7 +130,6 @@ TABLE_SPECS = {
         ),
     },
 }
-
 SOURCE_TO_TABLE = {
     alias: table_name
     for table_name, spec in TABLE_SPECS.items()
@@ -177,6 +177,10 @@ def initialize_database():
         for table_name, spec in TABLE_SPECS.items():
             connection.execute(spec["schema"])
             _seed_table_if_empty(connection, table_name, spec)
+
+        # Normalize legacy placeholder values in the student tools column.
+        connection.execute("UPDATE students_app SET tool = '' WHERE tool = 'None'")
+        connection.commit()
     finally:
         connection.close()
 
@@ -213,6 +217,15 @@ class tableModel(QSqlTableModel):
 
         for column, header in enumerate(self.spec["headers"]):
             self.setHeaderData(column, Qt.Orientation.Horizontal, header)
+
+    def load_reports_by_student(self, student_id):
+        if not str(student_id).strip():
+            self.setFilter("")
+        else:
+            self.setFilter(f"student_id = {int(student_id)}")
+
+        if not self.select():
+            raise RuntimeError(self.lastError().text())
 
     def add_row(self, values):
         if len(values) != len(self.spec["editable_columns"]):

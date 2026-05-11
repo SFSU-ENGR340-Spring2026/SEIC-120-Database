@@ -16,6 +16,10 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import pyqtSlot
 import csv
 from table_model import tableModel as dataTable
+import sqlite3
+from datetime import datetime, timedelta
+from table_model import DB_PATH
+from PyQt6.QtCore import pyqtSlot, QTimer
 
 from student_tab import myStudents
 from dashboard_tab import myDashboard
@@ -23,6 +27,33 @@ from spaces_tab import mySpaces
 from tool_tab import myTools
 from reports_tab import myReports
 
+# Function to delete expired notes
+
+def delete_expired_notes():
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    connection = sqlite3.connect(DB_PATH)
+
+    try:
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            DELETE FROM notes_app
+            WHERE CAST(temp AS INTEGER) = 1
+            AND timestamp IS NOT NULL
+            AND TRIM(timestamp) != ''
+            AND timestamp != 'None'
+            AND date(timestamp) < date(?)
+            """,
+            (today,)
+        )
+
+        print("Deleted expired notes:", cursor.rowcount)
+        connection.commit()
+
+    finally:
+        connection.close()
 class App(QMainWindow):
 
     def __init__(self):
@@ -55,6 +86,18 @@ class TableWidget(QWidget):
         noteModel = dataTable("notes_app")
         toolModel = dataTable("tools_app")
 
+        # Function to delete the notes
+
+        delete_expired_notes()
+        noteModel.select()
+
+        self.noteModel = noteModel
+
+        # 60 second timer to see whether a note is deleted
+        self.explorationTimer = QTimer(self)
+        self.explorationTimer.timeout.connect(self.cleanup_notes)
+        self.explorationTimer.start(60000)
+
         #create the tabs
         self.tab1 = myDashboard(studModel, noteModel, toolModel)   #3 models: students, notes, and tools
         self.tab2 = mySpaces(studModel)      #1 model: students
@@ -76,6 +119,11 @@ class TableWidget(QWidget):
         self.setLayout(self.layout)
 
         self.show()
+    
+    #Function to delete all of the expired notes
+    def cleanup_notes(self):
+        delete_expired_notes()
+        self.noteModel.select()
         
 
     @pyqtSlot()

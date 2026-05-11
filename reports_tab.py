@@ -1,15 +1,16 @@
-#Reports
-
-#Search students history
-#display the table
+# Reports
+# Search students history
+# Display the table
 
 import sys
+import csv
+
 from PyQt6.QtWidgets import (
-    QApplication, 
-    QWidget, 
-    QLabel, 
+    QApplication,
+    QWidget,
+    QLabel,
     QVBoxLayout,
-    QHBoxLayout, 
+    QHBoxLayout,
     QPushButton,
     QLineEdit,
     QTableWidget,
@@ -24,78 +25,85 @@ from PyQt6.QtWidgets import (
     QDialog,
     QCheckBox,
     QTextEdit
-
 )
+
 from table_model import tableModel
+from datetime import datetime
 
-
-import csv
 
 class myReports(QWidget):
-    def __init__(self, model,  *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #create main layout
+        # Create main layout
         self.mainLayout = QVBoxLayout(self)
-        
-        self.model = model                     #create a model
-        self.studentsData = QTableView()      # have model look at the data
+
+        # Create model/table view
+        self.model = model
+        self.studentsData = QTableView()
         self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.studentsData.setModel(self.model)
 
+        self.model.setFilter("tool_name = 'Report'")
+        self.model.select()
 
-        #layout for top thing
+        # Hide report_id column
+        self.studentsData.hideColumn(self.model.fieldIndex("note_id"))
+        self.studentsData.hideColumn(self.model.fieldIndex("temp"))
+
+        # Layout for search/buttons
         changeStudentsLayout = QHBoxLayout()
-        
-        #buttons
-        pullBtn = QPushButton()                      # Create button
-        pullBtn.setText("Pull")                       # Add text to button | Acts as a "Enter" button
 
-        filterBtn = QPushButton()                          
-        filterBtn.setText("Filters")                    # Button to open filter menu
+        # Pull button
+        pullBtn = QPushButton()
+        pullBtn.setText("Pull")
+        pullBtn.clicked.connect(self.pull_reports)
 
-        filterBtn.clicked.connect(self.openFilters)     # connecting this click function to opening pop up
+        # Filter button
+        filterBtn = QPushButton()
+        filterBtn.setText("Filters")
+        filterBtn.clicked.connect(self.openFilters)
 
+        # Make report button
         reportBtn = QPushButton()
         reportBtn.setText("Make Student Report")
-
         reportBtn.clicked.connect(self.openMakeReport_dialog)
 
+        # Place to enter student ID
+        self.entryLine = QLineEdit()
+        self.entryLine.setPlaceholderText("Enter Student ID")
 
-        #place to enter value
-        entryLine = QLineEdit()
-
-        #add widgets to layout
-        changeStudentsLayout.addWidget(entryLine)
+        # Add widgets to top layout
+        changeStudentsLayout.addWidget(self.entryLine)
         changeStudentsLayout.addWidget(pullBtn)
         changeStudentsLayout.addWidget(filterBtn)
         changeStudentsLayout.addWidget(reportBtn)
 
-        #add to main layout
+        # Add top layout to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
 
-        #stretch entries to fit
+        # Stretch table columns
         self.studentsData.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
+        # Table layout
         studentsDataLayout = QVBoxLayout()
-
         studentsDataLayout.addWidget(self.studentsData)
 
         self.mainLayout.addLayout(studentsDataLayout)
 
-        #set the created layout to the widget
+        # Set layout
         self.setLayout(self.mainLayout)
 
-        #set the widnow size
-        self.setGeometry(100, 100, 1000, 700)             #xpos, ypos, x size, y size
-        
-        # show the window
+        # Window size
+        self.setGeometry(100, 100, 1000, 700)
+
+        # Show window
         self.show()
-    
+
     def openFilters(self):
         dialog = filter_dialog(self)
 
-        if dialog.exec():                               # open pop up if "Filters" button is clicked
+        if dialog.exec():
             filters = dialog.getFilters()
             print(filters)
 
@@ -103,24 +111,63 @@ class myReports(QWidget):
         reporting = makeReport_dialog(self)
 
         if reporting.exec():
-            report = reporting.getConfirmReport()        # returns if report has been made
+            report = reporting.getConfirmReport()
             print(report)
 
-
-            # confirm/deny pop up window
             if report == "Report Created.":
+                student_id, name, report_text = reporting.getReportData()
+
+                self.add_report(
+                    student_id,
+                    name,
+                    None,
+                    None,
+                    None,
+                    None,
+                    report_text
+                )
+
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Information)
                 msg.setText("Report Created.")
                 msg.setWindowTitle("Confirmed")
                 msg.exec()
-            else: 
+
+            else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Critical)
                 msg.setText("Please Enter Information.")
                 msg.setWindowTitle("Denied")
                 msg.exec()
 
+    def add_report(self, student_id, name, time, machinery, table_name, tools, notes):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        self.model.add_row([
+            student_id,
+            "Report",
+            "None",
+            notes,
+            timestamp,
+            0
+        ])
+
+        self.model.select()
+
+
+    def pull_reports(self):
+        student_id = self.entryLine.text().strip()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if not student_id:
+            self.model.setFilter("")
+            self.model.select()
+            return
+
+        if not student_id.isdigit():
+            QMessageBox.warning(self, "Invalid ID", "Please enter a numeric student ID.")
+            return
+
+        self.model.load_reports_by_student(student_id)
 
     def create_layout(self, layoutName, textBox):
         layout = QVBoxLayout()
@@ -135,30 +182,31 @@ class myReports(QWidget):
 
         self.mainLayout.addLayout(layout)
 
+
 class makeReport_dialog(QDialog):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Make Student Report")
-        self.setFixedSize(500,700)
+        self.setFixedSize(500, 700)
 
         layout = QVBoxLayout(self)
-        topLayout = QHBoxLayout(self)
+        topLayout = QHBoxLayout()
 
-
-        # Entery Text 
-
-        # top layout
+        # Student ID input
         self.stuIDLine = QLineEdit()
         self.stuIDLine.setPlaceholderText("Enter Student ID Number")
 
+        # Student name input
         self.stuNameLine = QLineEdit()
         self.stuNameLine.setPlaceholderText("Enter Student Name")
-        
+
         topLayout.addWidget(self.stuIDLine)
         topLayout.addWidget(self.stuNameLine)
+
         layout.addLayout(topLayout)
 
+        # Report text box
         self.stuReport = QTextEdit()
         self.stuReport.setPlaceholderText("Enter Student Report")
         layout.addWidget(self.stuReport, 1)
@@ -169,7 +217,7 @@ class makeReport_dialog(QDialog):
         submitBtn = QPushButton("Submit")
         cancelBtn = QPushButton("Cancel")
 
-        submitBtn.clicked.connect(self.accept)           
+        submitBtn.clicked.connect(self.accept)
         cancelBtn.clicked.connect(self.reject)
 
         btnLayout.addWidget(submitBtn)
@@ -179,18 +227,20 @@ class makeReport_dialog(QDialog):
 
     def getConfirmReport(self):
         if self.stuIDLine.text().strip() and self.stuReport.toPlainText().strip():
-            return("Report Created.")
-
+            return "Report Created."
         else:
-            return("Please fill in information.")
-        
-    def warning(self):
-            pass
-          
+            return "Please fill in information."
+
+    def getReportData(self):
+        student_id = self.stuIDLine.text().strip()
+        name = self.stuNameLine.text().strip()
+        report_text = self.stuReport.toPlainText().strip()
+
+        return student_id, name, report_text
 
 
 class filter_dialog(QDialog):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Apply Filters")
@@ -213,30 +263,13 @@ class filter_dialog(QDialog):
         # tool_group.setLayout(tool_layout)               # add layout to group
         # layout.addWidget(tool_group)                    # add tool group to main pop up layout
 
-        # spaces group
+        # Tables Group
         spaces_group = QGroupBox("Tables")
         spaces_layout = QHBoxLayout()
 
-        #code works but does not return each filter individually
-        #so might be bad for filter purposes
-        """ for section in ["A", "B", "C", "D", "E", "F"]:
-            tempLayout = QVBoxLayout()
-            #create/reset the layout
-
-            for table in [1, 2, 3, 4, 5]:
-                string = f"{section}{table}"
-                box = QCheckBox(string)
-                #create the checkbox with a certain string
-
-                tempLayout.addWidget(box)
-                #add box to the layout
-            
-            spaces_layout.addLayout(tempLayout)
-            #add the created layout to the overall layout """
-
-        #section A
+        # Section A
         layoutA = QVBoxLayout()
-        
+
         self.tableA1Box = QCheckBox("A1")
         self.tableA2Box = QCheckBox("A2")
         self.tableA3Box = QCheckBox("A3")
@@ -249,7 +282,7 @@ class filter_dialog(QDialog):
         layoutA.addWidget(self.tableA4Box)
         layoutA.addWidget(self.tableA5Box)
 
-        # section B
+        # Section B
         layoutB = QVBoxLayout()
 
         self.tableB1Box = QCheckBox("B1")
@@ -264,7 +297,7 @@ class filter_dialog(QDialog):
         layoutB.addWidget(self.tableB4Box)
         layoutB.addWidget(self.tableB5Box)
 
-        # section C
+        # Section C
         layoutC = QVBoxLayout()
 
         self.tableC1Box = QCheckBox("C1")
@@ -279,8 +312,7 @@ class filter_dialog(QDialog):
         layoutC.addWidget(self.tableC4Box)
         layoutC.addWidget(self.tableC5Box)
 
-
-        # section D
+        # Section D
         layoutD = QVBoxLayout()
 
         self.tableD1Box = QCheckBox("D1")
@@ -295,7 +327,7 @@ class filter_dialog(QDialog):
         layoutD.addWidget(self.tableD4Box)
         layoutD.addWidget(self.tableD5Box)
 
-        # section E
+        # Section E
         layoutE = QVBoxLayout()
 
         self.tableE1Box = QCheckBox("E1")
@@ -310,7 +342,7 @@ class filter_dialog(QDialog):
         layoutE.addWidget(self.tableE4Box)
         layoutE.addWidget(self.tableE5Box)
 
-        # section F
+        # Section F
         layoutF = QVBoxLayout()
 
         self.tableF1Box = QCheckBox("F1")
@@ -325,29 +357,27 @@ class filter_dialog(QDialog):
         layoutF.addWidget(self.tableF4Box)
         layoutF.addWidget(self.tableF5Box)
 
-
-        # add sections B-E to section A, makes thr tables grouping in a 6x5 grid
+        # Add sections to table layout
         spaces_layout.addLayout(layoutA)
-        spaces_layout.addLayout(layoutB)             
+        spaces_layout.addLayout(layoutB)
         spaces_layout.addLayout(layoutC)
         spaces_layout.addLayout(layoutD)
         spaces_layout.addLayout(layoutE)
         spaces_layout.addLayout(layoutF)
 
-      
         spaces_group.setLayout(spaces_layout)
-        layout.addWidget(spaces_group)       
+        layout.addWidget(spaces_group)
 
-        # choice buttons
+        # Choice buttons
         btnLayout = QHBoxLayout()
 
         applyBtn = QPushButton("Apply")
         cancelBtn = QPushButton("Cancel")
 
-        applyBtn.clicked.connect(self.accept)           
+        applyBtn.clicked.connect(self.accept)
         cancelBtn.clicked.connect(self.reject)
 
-        btnLayout.addWidget(applyBtn)                    # add choice buttons to window
+        btnLayout.addWidget(applyBtn)
         btnLayout.addWidget(cancelBtn)
 
         layout.addLayout(btnLayout)
@@ -359,7 +389,7 @@ class filter_dialog(QDialog):
             # "Screwdriver": self.screwdriverBox.isChecked(),
             # "Hammer:": self.hammerBox.isChecked(),
 
-            # spaces
+            # Spaces
             "A1": self.tableA1Box.isChecked(),
             "A2": self.tableA2Box.isChecked(),
             "A3": self.tableA3Box.isChecked(),
@@ -370,13 +400,13 @@ class filter_dialog(QDialog):
             "B2": self.tableB2Box.isChecked(),
             "B3": self.tableB3Box.isChecked(),
             "B4": self.tableB4Box.isChecked(),
-            "B5": self.tableB5Box.isChecked(),    
+            "B5": self.tableB5Box.isChecked(),
 
             "C1": self.tableC1Box.isChecked(),
             "C2": self.tableC2Box.isChecked(),
             "C3": self.tableC3Box.isChecked(),
             "C4": self.tableC4Box.isChecked(),
-            "C5": self.tableC5Box.isChecked(),        
+            "C5": self.tableC5Box.isChecked(),
 
             "D1": self.tableD1Box.isChecked(),
             "D2": self.tableD2Box.isChecked(),
@@ -390,15 +420,22 @@ class filter_dialog(QDialog):
             "E4": self.tableE4Box.isChecked(),
             "E5": self.tableE5Box.isChecked(),
 
+            "F1": self.tableF1Box.isChecked(),
+            "F2": self.tableF2Box.isChecked(),
+            "F3": self.tableF3Box.isChecked(),
+            "F4": self.tableF4Box.isChecked(),
+            "F5": self.tableF5Box.isChecked(),
         }
 
-        
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    # create the main window
+    # Create the model using reports_app
     dataModel = tableModel("notes_app")
+
+    # Create the reports window
     window = myReports(dataModel)
 
-    # start the event loop
+    # Start the event loop
     sys.exit(app.exec())
