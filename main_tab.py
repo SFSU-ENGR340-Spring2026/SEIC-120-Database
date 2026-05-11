@@ -41,15 +41,15 @@ def delete_expired_notes():
             """
             DELETE FROM notes_app
             WHERE CAST(temp AS INTEGER) = 1
-            AND timestamp LIKE '____-__-__%'
+            AND timestamp IS NOT NULL
+            AND TRIM(timestamp) != ''
+            AND timestamp != 'None'
             AND date(timestamp) < date(?)
             """,
             (today,)
         )
 
-        print("Today:", today)
         print("Deleted expired notes:", cursor.rowcount)
-
         connection.commit()
 
     finally:
