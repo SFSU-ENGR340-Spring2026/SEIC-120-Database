@@ -421,6 +421,7 @@ class myDashboard(QWidget):
                 text[4] = timestamp
                 text.append(1)              #if temp or not, 0 means permanents
                 self.noteModel.add_row(text)
+                self.noteModel.select()
                 #add it to the model
 
                 # view.resizeRowsToContents()

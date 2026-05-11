@@ -44,6 +44,9 @@ class myReports(QWidget):
         self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.studentsData.setModel(self.model)
 
+        self.model.setFilter("tool_name = 'Report'")
+        self.model.select()
+
         # Hide report_id column
         self.studentsData.hideColumn(self.model.fieldIndex("note_id"))
         self.studentsData.hideColumn(self.model.fieldIndex("temp"))
@@ -114,21 +117,14 @@ class myReports(QWidget):
             if report == "Report Created.":
                 student_id, name, report_text = reporting.getReportData()
 
-                # These are placeholder values for the reports_app columns
-                time = "None"
-                machinery = "None"
-                table_name = "None"
-                tools = "None"
-                notes = report_text
-
                 self.add_report(
                     student_id,
                     name,
-                    time,
-                    machinery,
-                    table_name,
-                    tools,
-                    notes
+                    None,
+                    None,
+                    None,
+                    None,
+                    report_text
                 )
 
                 msg = QMessageBox()
@@ -145,11 +141,19 @@ class myReports(QWidget):
                 msg.exec()
 
     def add_report(self, student_id, name, time, machinery, table_name, tools, notes):
-            tool_name = "Report"
-            location = "None"
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            temp = 1
-            self.model.add_row([student_id, name, timestamp, machinery, table_name, tools, notes])
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        self.model.add_row([
+            student_id,
+            "Report",
+            "None",
+            notes,
+            timestamp,
+            0
+        ])
+
+        self.model.select()
+
 
     def pull_reports(self):
         student_id = self.entryLine.text().strip()

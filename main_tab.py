@@ -17,7 +17,7 @@ from PyQt6.QtCore import pyqtSlot
 import csv
 from table_model import tableModel as dataTable
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from table_model import DB_PATH
 from PyQt6.QtCore import pyqtSlot, QTimer
 
@@ -28,32 +28,32 @@ from tool_tab import myTools
 from reports_tab import myReports
 
 # Function to delete expired notes
+
 def delete_expired_notes():
-    # Check the time and date
-    today = datetime.now().date().isoformat()
+    today = datetime.now().strftime("%Y-%m-%d")
 
     connection = sqlite3.connect(DB_PATH)
+
     try:
         cursor = connection.cursor()
 
         cursor.execute(
             """
             DELETE FROM notes_app
-            WHERE temp = 1
-            AND timestamp IS NOT NULL
-            AND timestamp != ''
-            AND timestamp != 'None'
+            WHERE CAST(temp AS INTEGER) = 1
+            AND timestamp LIKE '____-__-__%'
             AND date(timestamp) < date(?)
             """,
             (today,)
         )
 
+        print("Today:", today)
         print("Deleted expired notes:", cursor.rowcount)
 
         connection.commit()
+
     finally:
         connection.close()
-
 class App(QMainWindow):
 
     def __init__(self):
@@ -86,6 +86,7 @@ class TableWidget(QWidget):
         toolModel = dataTable("tools_app")
 
         # Function to delete the notes
+
         delete_expired_notes()
         noteModel.select()
 
