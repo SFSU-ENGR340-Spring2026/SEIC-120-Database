@@ -41,10 +41,10 @@ def delete_expired_notes():
             """
             DELETE FROM notes_app
             WHERE CAST(temp AS INTEGER) = 1
-            AND timestamp IS NOT NULL
-            AND TRIM(timestamp) != ''
-            AND timestamp != 'None'
-            AND date(timestamp) < date(?)
+            AND time IS NOT NULL
+            AND TRIM(time) != ''
+            AND time != 'None'
+            AND date(time) < date(?)
             """,
             (today,)
         )
