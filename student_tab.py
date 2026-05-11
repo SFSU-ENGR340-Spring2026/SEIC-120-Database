@@ -162,13 +162,13 @@ class myStudents(QWidget):
             index = self.certBox.currentIndex()                     # save the index 
             if index == 1:                                      
                 self.newToolData.append("🛠️")                        # if tools is selected, add the tool icon
-                print("tool")
+                # print("tool")
             elif index == 2:
                 self.newToolData.append("❇️")                         # if laser cutter/engravr is selected, add the lzr icon
-                print("lzr")
+                # print("lzr")
             elif index == 3:
                 self.newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
-                print("print")
+                # print("print")
             else:
                 self.newToolData.append("❌")                           # if none/nothing is selected, add None
 
@@ -216,7 +216,7 @@ class myStudents(QWidget):
 
         update = updateStu(self.studentsData, self.studModel, record)
         updateMade = update.getCert()       # check to see which cert was clicked in pop up
-        print(updateMade)
+        # print(updateMade)
 
 
         # get location of cert cell of selected student
@@ -231,21 +231,21 @@ class myStudents(QWidget):
 
         if update.exec():
             updateMade = update.getCert()       # check to see which cert was clicked in pop up
-            print(updateMade)
+            # print(updateMade)
 
             updatedCerts = ""
 
             if updateMade.get("tool") == True:         # returned in updateStu method getCert
                 updatedCerts = f"{updatedCerts}🛠️"
-                print("+tool")
+                # print("+tool")
 
             if updateMade.get("laser") == True:
                 updatedCerts = f"{updatedCerts}❇️"
-                print("+lzr")
+                # print("+lzr")
 
             if updateMade.get("printer") == True:
                 updatedCerts = f"{updatedCerts}🧊"
-                print("+printer")
+                # print("+printer")
 
             self.studModel.change_value(sourceRow, "certs", str(updatedCerts))
 
