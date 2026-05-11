@@ -271,13 +271,23 @@ class myDashboard(QWidget):
         #find the original row index (source_row), and the values in that row (record)
 
         sourceToolRow, toolRecord = self.get_source_row(self.toolView, self.toolModel, self.toolProxy)
-        
+
         tool = record.value("tool")
         #get the value at this specified field
         
         # toolIndex = self.toolView.currentIndex()
         #index (row, col, data) of currently clicked on tool
         toolRow = sourceToolRow                       #find its row
+
+        # print(toolRow)
+        if toolRow < 0:
+            QMessageBox.critical(
+                self,
+                "Failed",
+                "Current Quantity of tool is too low. lmao"
+            )
+            return
+
         toolCol = self.toolModel.fieldIndex("name")     #find col for names
         index = self.toolModel.index(toolRow, toolCol)   #index it
 
@@ -291,15 +301,6 @@ class myDashboard(QWidget):
         #get text of tool to be added using that index
 
         # print(f"tool to add: {currTool}")
-        
-        # print(toolRow)
-        if toolRow < 0:
-            QMessageBox.critical(
-                self,
-                "Failed",
-                "Current Quantity of tool is too low. lmao"
-            )
-            return
 
         current_quantity = self.toolModel.data(
             self.toolModel.index(toolRow, self.toolModel.fieldIndex("current_quantity"))
@@ -327,6 +328,9 @@ class myDashboard(QWidget):
         # table.resizeRowsToContents()
 
         #decrement quantity
+        if self.toolView.selectionModel() is not None:
+            self.toolView.selectionModel().clearCurrentIndex()
+            self.toolView.clearSelection()
         self.toolModel.adjust_value(toolRow, "current_quantity", -1, minimum=0)
 
         #make note
