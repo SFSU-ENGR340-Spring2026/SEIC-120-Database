@@ -102,7 +102,7 @@ TABLE_SPECS = {
         ),
     },
     "notes_app": {
-        "aliases": {"notesApp.csv", "notes_app"},
+        "aliases": {"sampleReports.csv","notesApp.csv", "notes_app"},
         "schema": """
             CREATE TABLE IF NOT EXISTS notes_app (
                 note_id INTEGER PRIMARY KEY,
@@ -116,7 +116,17 @@ TABLE_SPECS = {
         """,
         "headers": ["Note ID", "Student ID", "Tool Name", "Location", "Note", "Time","Temporary"],
         "editable_columns": ["student_id", "tool_name", "location", "note_text", "time", "temp"],
-        "seed_file": BASE_DIR / "notesApp.csv",
+        "seed_file": BASE_DIR / "sampleReports.csv",
+        "seed_columns": ["note_id", "student_id", "tool_name", "location", "note_text", "time", "temp"],
+        "seed_transform": lambda row: (
+            row.get("Note ID", "").strip(),
+            row.get("Student ID", "").strip(),
+            row.get("Tool Name", "").strip(),
+            row.get("Location", "").strip(),
+            row.get("Note", "").strip(),
+            row.get("Time", "").strip(),
+            row.get("Temporary", "").strip(),
+        ),
     },
 }
 
@@ -242,3 +252,40 @@ class tableModel(QSqlTableModel):
     def change_value(self, row, colName, value):
         column_index = self.fieldIndex(colName)
         self.setData(self.index(row, column_index), value)
+
+        if not self.submitAll():
+            self.revertAll()
+            raise RuntimeError(self.lastError().text())
+
+        self.select()
+
+    def find_row_by_value(self, colName, value):
+        column_index = self.fieldIndex(colName)
+        for row in range(self.rowCount()):
+            if str(self.data(self.index(row, column_index))) == str(value):
+                return row
+        return -1
+
+    def adjust_value(self, row, colName, delta, minimum=None, maximum=None):
+        column_index = self.fieldIndex(colName)
+        current_value = self.data(self.index(row, column_index))
+
+        try:
+            new_value = int(current_value) + int(delta)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Column '{colName}' does not contain an integer value.") from exc
+
+        if minimum is not None:
+            new_value = max(minimum, new_value)
+
+        if maximum is not None:
+            new_value = min(maximum, new_value)
+
+        self.setData(self.index(row, column_index), new_value)
+
+        if not self.submitAll():
+            self.revertAll()
+            raise RuntimeError(self.lastError().text())
+
+        self.select()
+        return new_value
