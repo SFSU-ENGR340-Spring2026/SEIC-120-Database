@@ -89,9 +89,9 @@ class TableWidget(QWidget):
         # Function to delete the notes
 
         delete_expired_notes()
-        noteModel.select()
+        # noteModel.select()
 
-        self.noteModel = noteModel
+        # self.noteModel = noteModel
 
         # 60 second timer to see whether a note is deleted
         self.explorationTimer = QTimer(self)
@@ -123,7 +123,7 @@ class TableWidget(QWidget):
     #Function to delete all of the expired notes
     def cleanup_notes(self):
         delete_expired_notes()
-        self.noteModel.select()
+        # self.noteModel.select()
         
 
     @pyqtSlot()

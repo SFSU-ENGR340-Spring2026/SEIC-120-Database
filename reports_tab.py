@@ -44,8 +44,8 @@ class myReports(QWidget):
         self.studentsData.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.studentsData.setModel(self.model)
 
-        self.model.setFilter("tool_name = 'Report'")
-        self.model.select()
+        # self.model.setFilter("tool_name = 'Report'")
+        # self.model.select()
 
         # Hide report_id column
         self.studentsData.hideColumn(self.model.fieldIndex("note_id"))

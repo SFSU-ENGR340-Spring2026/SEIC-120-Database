@@ -87,12 +87,22 @@ class myStudents(QWidget):
         changeStudentsLayout.addWidget(delBtn)
 
         #search bar
+        searchLayout = QHBoxLayout()               # layout created under changeStedentsLayout
         self.searchBar = QLineEdit()
         self.searchBar.setPlaceholderText("Search for student ID or Name")
 
+        updateBtn = QPushButton()
+        updateBtn.setText("Update Student")
+        updateBtn.clicked.connect(self.openUpdateStu)       # if update button is clicked, open updateStu
+
+        searchLayout.addWidget(self.searchBar)      # add to the searchLayout
+        searchLayout.addWidget(updateBtn)
+
+
         #add to main layout
         self.mainLayout.addLayout(changeStudentsLayout)
-        self.mainLayout.addWidget(self.searchBar)
+        self.mainLayout.addLayout(searchLayout)     # add to main layout
+     
 
         self.studModel = model
         #create the model for the data
@@ -137,14 +147,14 @@ class myStudents(QWidget):
         return os.path.join(basedir, filename)
 
     def add_student(self):
-        newToolData = []
+        self.newToolData = []
 
         for entry in self.entries:
-            newToolData.append(entry.text())
+            self.newToolData.append(entry.text())
             #add all entries to a list
         
-        newToolData.append("")                     # tools column
-        newToolData.append("None")                 # location column
+        self.newToolData.append("None")                 # tools column
+        self.newToolData.append("None")                 # location column
 
 
         # Student cert selection
@@ -160,13 +170,13 @@ class myStudents(QWidget):
                 self.newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
                 # print("print")
             else:
-                newToolData.append("❌")                           # if none/nothing is selected, add None
+                self.newToolData.append("❌")                           # if none/nothing is selected, add None
 
            
 
         #needs 4 entries to enter into db, default to none for new student
         
-        self.studModel.add_row(newToolData)
+        self.studModel.add_row(self.newToolData)
         #add list to table
     
     def rem_student(self):
@@ -356,12 +366,6 @@ class updateStu(QDialog):               # pop up for updating a student
         else:
             return(self.newName)
             
-
-
-   
-
-
-
 
     
 if __name__ == '__main__':

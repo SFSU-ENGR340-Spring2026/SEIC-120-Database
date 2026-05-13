@@ -503,7 +503,6 @@ class myDashboard(QWidget):
                 # print(f"text: {text}")
                 text.append(0)              #if temp or not, 0 means permanent
                 self.noteModel.add_row(text)
-                self.noteModel.select()
                 #add it to the model
 
                 # view.resizeRowsToContents()
@@ -523,7 +522,7 @@ class myDashboard(QWidget):
     def auto_report(self, student_id, tool_name, location, note_text):
         #generates auto report, for assigning tools, students
         #  noteid, studid, toolid, location, note, time
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.noteModel.add_row([student_id, tool_name, location, note_text, timestamp, 1])
     
     def get_source_row(self, view, model, proxy):
@@ -584,7 +583,7 @@ class makeNote_dialog(QDialog):
         self.timeLine.setPlaceholderText("YYYY-MM-DD-HH:MM")
 
         #grab current time and date
-        ct = datetime.datetime.now()
+        ct = datetime.now()
         self.timeLine.setText(str(ct)[:-7])
         #chop off last few digits
         # print(self.timeLine.text())
