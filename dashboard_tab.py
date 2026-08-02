@@ -153,6 +153,10 @@ class myDashboard(QWidget):
         addNote.setText("Add Note")
         headerLayout.addWidget(addNote)
 
+        resetView = QPushButton()
+        resetView.setText("Reset View")
+        headerLayout.addWidget(resetView)
+
         table = QTableView()
         table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -183,6 +187,7 @@ class myDashboard(QWidget):
         # table.resizeRowsToContents()
         
         addNote.clicked.connect(lambda:self.add_note(table))
+        resetView.clicked.connect(lambda:self.reset_note_view())
         
         self.mainLayout.addLayout(layout)
 
@@ -221,16 +226,14 @@ class myDashboard(QWidget):
 
         self.toolProxy.set_exclude_filter(model.fieldIndex("current_quantity"), "0")
 
-        print(model.fieldIndex("name"))
-        print(model.fieldIndex("current_quantity"))
+        # print(model.fieldIndex("name"))
+        # print(model.fieldIndex("current_quantity"))
 
         self.toolView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         #make it stretch
 
         self.toolProxy.setFilterKeyColumn(location_column)
         # filter by the location column in the SQLite-backed model
-
-        self.toolView.clicked.connect(lambda:self.getTool(self.toolView))
         
         self.toolProxy.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         #show all tools, including those currently at 0 available
@@ -247,24 +250,15 @@ class myDashboard(QWidget):
         self.toolProxy.set_include_filter(model.fieldIndex("name"), text)
 
     def showReports(self, table):
-        row = table.currentIndex()
+    #when clicking on a currently checked in student in the view, change the reports to only show notes of that id
+        row, record = self.get_source_row(self.studView, self.studModel, self.studProxy)
         #get the person who's been clicked on
         
-        # print(row.data())           #for testing
+        id = record.value("id")
+        #grab their id
 
-        #check that it's an id (or at least an integer)
-            #return if not
-        
-        #search id for reports on it (filter by the day?)
-
-        #then create model for it, and load into note view
-        self.noteProxy.setFilterFixedString(str(row.data()))
-        
-    def getTool(self, table):
-    #function to get the currently selected tool and store it somewhere
-        currentToolIndex = table.currentIndex()
-
-        self.currentTool = currentToolIndex.data()
+        self.noteProxy.setFilterFixedString(str(id))
+        #use id to filter notes view
 
     def assign_tool(self, table, model):
     #given table of currently in students, and a model to modify, give them tool thats currently clicked
@@ -280,13 +274,15 @@ class myDashboard(QWidget):
         # toolIndex = self.toolView.currentIndex()
         #index (row, col, data) of currently clicked on tool
         toolRow = sourceToolRow                       #find its row
+        quan = toolRecord.value("current_quantity")   #check tools current quantity
+
 
         # print(toolRow)
-        if toolRow < 0:
+        if quan < 0:
             QMessageBox.critical(
                 self,
                 "Failed",
-                "Current Quantity of tool is too low. lmao"
+                "No tool amount to be checked out."
             )
             return
 
@@ -307,6 +303,15 @@ class myDashboard(QWidget):
         current_quantity = self.toolModel.data(
             self.toolModel.index(toolRow, self.toolModel.fieldIndex("current_quantity"))
         )
+
+        if current_quantity is None:
+            QMessageBox.critical(
+                self,
+                "Failed",
+                "No tool selected."
+            )
+            return 
+        
         if int(current_quantity) <= 0:
             QMessageBox.critical(
                 self,
@@ -349,7 +354,7 @@ class myDashboard(QWidget):
         #increment quantity
         #make note
 
-        col = model.fieldIndex("tool")
+        # col = model.fieldIndex("tool")
         #find the students' tools to be returned
 
         row, record = self.get_source_row(view, model, self.studProxy)
@@ -518,6 +523,9 @@ class myDashboard(QWidget):
                 msg.setText("Please Enter Information.")
                 msg.setWindowTitle("Denied")
                 msg.exec()
+
+    def reset_note_view(self):
+        self.noteProxy.setFilterFixedString(None)
     
     def auto_report(self, student_id, tool_name, location, note_text):
         #generates auto report, for assigning tools, students
