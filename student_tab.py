@@ -149,6 +149,15 @@ class myStudents(QWidget):
     def add_student(self):
         self.newToolData = []
 
+        if self.entries[0].text().isdigit() is False:
+        #checks if the inputted student id is a number
+            QMessageBox.critical(
+                        self,
+                        "Fail",
+                        "Student ID must be a number."
+                    )
+            return
+
         for entry in self.entries:
             self.newToolData.append(entry.text())
             #add all entries to a list
@@ -170,9 +179,7 @@ class myStudents(QWidget):
                 self.newToolData.append("🧊")                       # if the 3D print icon is selected, add the 3D print icon
                 # print("print")
             else:
-                self.newToolData.append("❌")                           # if none/nothing is selected, add None
-
-           
+                self.newToolData.append("❌")                           # if none/nothing is selected, add None           
 
         #needs 4 entries to enter into db, default to none for new student
         

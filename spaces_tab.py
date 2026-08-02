@@ -72,7 +72,7 @@ class mySpaces(QWidget):
                 proxy_model.setFilterRegularExpression(
                     QRegularExpression(r"^(?!none$)e.*", QRegularExpression.PatternOption.CaseInsensitiveOption)
                 )
-                print("did it")
+                # print("did it")
                 #for e specifically, dont want none to be included in the filter
             else:
                 proxy_model.setFilterWildcard(filter)
