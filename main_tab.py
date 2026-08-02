@@ -54,6 +54,7 @@ def delete_expired_notes():
 
     finally:
         connection.close()
+
 class App(QMainWindow):
 
     def __init__(self):
@@ -93,10 +94,10 @@ class TableWidget(QWidget):
 
         # self.noteModel = noteModel
 
-        # 60 second timer to see whether a note is deleted
-        self.explorationTimer = QTimer(self)
-        self.explorationTimer.timeout.connect(self.cleanup_notes)
-        self.explorationTimer.start(60000)
+        # # 60 second timer to see whether a note is deleted
+        # self.explorationTimer = QTimer(self)
+        # self.explorationTimer.timeout.connect(self.cleanup_notes)
+        # self.explorationTimer.start(60000)
 
         #create the tabs
         self.tab1 = myDashboard(studModel, noteModel, toolModel)   #3 models: students, notes, and tools
